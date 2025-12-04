@@ -1,0 +1,169 @@
+/* =========================================
+   VARIÁVEIS GLOBAIS
+   ========================================= */
+:root {
+    --cor-fundo-geral: #ffffff;
+    --cor-texto: #333;
+    --cor-topbar-fundo: #222;
+    --cor-topbar-texto: #ffffff;
+    --cor-menu-fundo: #333;
+    --cor-menu-hover: #444;
+    --cor-menu-texto: #ddd;
+    --cor-menu-texto-hover: #fff;
+    --cor-borda-tabela: #999;
+    --cor-header-tabela: #f2f2f2;
+    --cor-botao: #0078ff;
+    --cor-botao-hover: #005fcc;
+    --cor-botao-texto: #fff;
+    --cor-danger: #d9534f;
+    --cor-danger-hover: #c9302c;
+}
+
+/* =========================================
+   GLOBAL
+   ========================================= */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--cor-fundo-geral);
+    color: var(--cor-texto);
+}
+
+.content {
+    padding: 25px;
+}
+
+/* =========================================
+   TOPBAR (menu superior)
+   ========================================= */
+.topbar {
+    background: var(--cor-topbar-fundo);
+    color: var(--cor-topbar-texto);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+}
+
+.hamburger {
+    font-size: 26px;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* =========================================
+   SIDEBAR (menu lateral)
+   ========================================= */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--cor-menu-fundo);
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+}
+
+.sidebar a {
+    padding: 12px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    color: var(--cor-menu-texto);
+    display: block;
+    transition: 0.2s;
+}
+
+.sidebar a:hover {
+    background: var(--cor-menu-hover);
+    color: var(--cor-menu-texto-hover);
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: var(--cor-topbar-texto);
+}
+
+/* =========================================
+   TABELAS
+   ========================================= */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+}
+
+table th {
+    background: var(--cor-header-tabela);
+    padding: 10px;
+    border: 1px solid var(--cor-borda-tabela);
+}
+
+table td {
+    padding: 10px;
+    border: 1px solid var(--cor-borda-tabela);
+}
+
+table tr:hover {
+    background: #f9f9f9;
+}
+
+/* =========================================
+   FORMULÁRIOS
+   ========================================= */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid var(--cor-borda-tabela);
+    border-radius: 4px;
+    width: 250px;
+}
+
+button {
+    padding: 8px 14px;
+    background: var(--cor-botao);
+    color: var(--cor-botao-texto);
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover {
+    background: var(--cor-botao-hover);
+}
+
+/* Botão de excluir */
+a.excluir {
+    color: var(--cor-danger);
+    font-weight: bold;
+}
+
+a.excluir:hover {
+    color: var(--cor-danger-hover);
+}
+
+/* =========================================
+   CABEÇALHOS
+   ========================================= */
+h1 {
+    color: var(--cor-texto);
+    margin-bottom: 15px;
+}
+
+h2 {
+    color: var(--cor-texto);
+}
+
+/* =========================================
+   UTILIDADES
+   ========================================= */
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
