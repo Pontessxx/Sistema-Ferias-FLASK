@@ -1,7 +1,8 @@
 from flask import Flask, render_template
 from database import create_database
 from routes.funcionario_routes import funcionario_bp
-from routes.ferias_routes import ferias_bp  # ADICIONADO
+from routes.ferias_routes import ferias_bp
+from routes.folga_routes import folga_bp
 
 app = Flask(__name__)
 
@@ -10,6 +11,7 @@ create_database()
 # Registrar rotas
 app.register_blueprint(funcionario_bp)
 app.register_blueprint(ferias_bp)
+app.register_blueprint(folga_bp)
 
 # Rota principal opcional — vamos REDIRECIONAR para o blueprint correto
 @app.route("/")

@@ -70,9 +70,11 @@
 
 <form action="/adicionar-folga" method="POST" id="formFolga" class="form-section">
 
+    <input type="hidden" id="folga_id" name="folga_id">
+
     <div class="form-group">
         <label>Funcionário:</label>
-        <select name="funcionario_folga_id" required>
+        <select name="funcionario_folga_id" id="funcionario_folga_id" required>
             <option value="">Selecione...</option>
             {% for f in funcionarios %}
                 <option value="{{ f[0] }}">{{ f[1] }}</option>
@@ -82,7 +84,7 @@
 
     <div class="form-group">
         <label>Ano da folga:</label>
-        <select name="ano" required>
+        <select name="ano" id="ano" required>
             <option value="{{ ano_atual }}">{{ ano_atual }}</option>
             <option value="{{ ano_proximo }}">{{ ano_proximo }}</option>
         </select>
@@ -90,13 +92,14 @@
 
     <div class="form-group">
         <label>Data da folga:</label>
-        <input type="date" name="data_folga" required>
+        <input type="date" name="data_folga" id="data_folga" required>
     </div>
 
 </form>
 
 <div class="form-buttons">
-    <button type="submit" form="formFolga" class="btn">Salvar Folga</button>
+    <button type="submit" form="formFolga" id="btnFolga" class="btn">Salvar Folga</button>
+    <button type="button" id="btnExcluirFolga" class="btn-secondary" onclick="excluirFolga()" style="display:none;">Excluir Folga</button>
 </div>
 
 <hr>
@@ -121,14 +124,10 @@
             '{{ f[0] }}','{{ f[1] }}','{{ f[3] }}','{{ f[4] }}','{{ f[5] }}',
             '{{ f[10] }}','{{ f[11] }}','{{ f[12] }}','{{ f[13] }}'
         )">
-
-
         <td>{{ f[2] }}</td>
         <td>{{ f[3] }}</td>
         <td>{{ f[4] }} dias</td>
         <td>{{ f[5] }}</td>
-
-        <!-- datas em formato BR -->
         <td>{{ f[6] }}</td>
         <td>{{ f[7] }}</td>
         <td>{{ f[8] or '-' }}</td>
@@ -136,6 +135,7 @@
     </tr>
     {% endfor %}
 </table>
+
 
 <script>
 
@@ -150,7 +150,6 @@ function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, 
     document.getElementById("agendado_sap").value = sap;
     document.getElementById("abono_pecuniario").value = abono;
 
-    // preencher INPUTS com datas ISO
     document.getElementById("inicio").value = inicioISO;
     document.getElementById("fim").value = fimISO;
     document.getElementById("folga_ano_anterior").value = folgaAntISO;
@@ -183,21 +182,59 @@ function limparFormulario() {
     document.getElementById("btnSubmit").innerText = "Salvar";
 }
 
-document.getElementById("inicio").addEventListener("change", function () {
 
-    let saldo = parseInt(document.querySelector("#span_saldo").innerText);
-    if (!saldo || saldo <= 0) return;
+// ===============================
+//      CONTROLE DE FOLGA
+// ===============================
 
-    let inicio = new Date(this.value);
-    let fim = new Date(inicio);
-    fim.setDate(fim.getDate() + saldo - 1);
+// detecta mudanças
+document.getElementById("funcionario_folga_id").addEventListener("change", verificarFolga);
+document.getElementById("ano").addEventListener("change", verificarFolga);
 
-    let yyyy = fim.getFullYear();
-    let mm = String(fim.getMonth() + 1).padStart(2, "0");
-    let dd = String(fim.getDate()).padStart(2, "0");
+function verificarFolga() {
 
-    document.getElementById("fim").value = `${yyyy}-${mm}-${dd}`;
-});
+    const funcionarioId = document.getElementById("funcionario_folga_id").value;
+    const ano = document.getElementById("ano").value;
+
+    if (!funcionarioId || !ano) return;
+
+    fetch("/buscar-folga", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: `funcionario_id=${funcionarioId}&ano=${ano}`
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.id) {
+            // Já existe folga → modo atualização
+            document.getElementById("folga_id").value = data.id;
+            document.getElementById("data_folga").value = data.data;
+
+            document.getElementById("formFolga").action = `/atualizar-folga/${data.id}`;
+            document.getElementById("btnFolga").innerText = "Atualizar Folga";
+            document.getElementById("btnExcluirFolga").style.display = "inline-block";
+
+        } else {
+            // Não existe → cadastrar
+            document.getElementById("folga_id").value = "";
+            document.getElementById("data_folga").value = "";
+
+            document.getElementById("formFolga").action = "/adicionar-folga";
+            document.getElementById("btnFolga").innerText = "Salvar Folga";
+            document.getElementById("btnExcluirFolga").style.display = "none";
+        }
+    });
+}
+
+function excluirFolga() {
+    const id = document.getElementById("folga_id").value;
+
+    if (!id)
+        return alert("Erro: sem ID da folga.");
+
+    window.location.href = `/deletar-folga/${id}`;
+}
 
 </script>
 
