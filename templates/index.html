@@ -2,6 +2,7 @@
 {% block content %}
 
 <h1>Cadastro de Férias</h1>
+
 <form action="/adicionar-ferias" method="POST" class="form-section" id="formFerias">
 
     <input type="hidden" id="ferias_id" name="ferias_id">
@@ -18,7 +19,7 @@
 
     <div class="form-group">
         <label id="label_saldo">Saldo de férias:</label>
-        <span id="span_saldo"> selecione um funcionário</span>
+        <span id="span_saldo">selecione um funcionário</span>
     </div>
 
     <div class="form-group">
@@ -31,7 +32,7 @@
 
     <div class="form-group">
         <label>Abono Pecuniário:</label>
-        <select name="abono_peculiario" id="abono_peculiario">
+        <select name="abono_pecuniario" id="abono_pecuniario">
             <option value="sim">Sim</option>
             <option value="não">Não</option>
         </select>
@@ -65,6 +66,39 @@
 </div>
 
 
+<h2>Folga Assiduidade</h2>
+
+<form action="/adicionar-folga" method="POST" id="formFolga" class="form-section">
+
+    <div class="form-group">
+        <label>Funcionário:</label>
+        <select name="funcionario_folga_id" required>
+            <option value="">Selecione...</option>
+            {% for f in funcionarios %}
+                <option value="{{ f[0] }}">{{ f[1] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Ano da folga:</label>
+        <select name="ano" required>
+            <option value="{{ ano_atual }}">{{ ano_atual }}</option>
+            <option value="{{ ano_proximo }}">{{ ano_proximo }}</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Data da folga:</label>
+        <input type="date" name="data_folga" required>
+    </div>
+
+</form>
+
+<div class="form-buttons">
+    <button type="submit" form="formFolga" class="btn">Salvar Folga</button>
+</div>
+
 <hr>
 
 <h2>Férias cadastradas</h2>
@@ -83,13 +117,18 @@
 
     {% for f in ferias %}
     <tr class="clickable-row"
-        onclick="carregarFerias('{{ f[0] }}','{{ f[1] }}','{{ f[3] }}','{{ f[4] }}',
-                                 '{{ f[5] }}','{{ f[6] }}','{{ f[7] }}','{{ f[8] }}','{{ f[9] }}')">
+        onclick="carregarFerias(
+            '{{ f[0] }}','{{ f[1] }}','{{ f[3] }}','{{ f[4] }}','{{ f[5] }}',
+            '{{ f[10] }}','{{ f[11] }}','{{ f[12] }}','{{ f[13] }}'
+        )">
+
 
         <td>{{ f[2] }}</td>
         <td>{{ f[3] }}</td>
         <td>{{ f[4] }} dias</td>
         <td>{{ f[5] }}</td>
+
+        <!-- datas em formato BR -->
         <td>{{ f[6] }}</td>
         <td>{{ f[7] }}</td>
         <td>{{ f[8] or '-' }}</td>
@@ -99,30 +138,32 @@
 </table>
 
 <script>
-function carregarFerias(id, funcionarioId, sap, dias, abono, inicio, fim, folgaAnt, folgaAno) {
+
+function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, folgaAntISO, folgaAnoISO) {
 
     document.getElementById("ferias_id").value = id;
     document.getElementById("funcionario_id").value = funcionarioId;
 
     let saldo = document.querySelector(`option[value="${funcionarioId}"]`).dataset.saldo;
-    document.getElementById("span_saldo").innerText =
-        saldo + " dias restantes";
+    document.getElementById("span_saldo").innerText = saldo + " dias restantes";
 
     document.getElementById("agendado_sap").value = sap;
-    document.getElementById("abono_peculiario").value = abono;
-    document.getElementById("inicio").value = inicio;
-    document.getElementById("fim").value = fim;
-    document.getElementById("folga_ano_anterior").value = folgaAnt;
-    document.getElementById("folga_ano").value = folgaAno;
+    document.getElementById("abono_pecuniario").value = abono;
+
+    // preencher INPUTS com datas ISO
+    document.getElementById("inicio").value = inicioISO;
+    document.getElementById("fim").value = fimISO;
+    document.getElementById("folga_ano_anterior").value = folgaAntISO;
+    document.getElementById("folga_ano").value = folgaAnoISO;
 
     document.getElementById("formFerias").action = "/atualizar-ferias/" + id;
     document.getElementById("btnSubmit").innerText = "Atualizar Férias";
 }
 
+
 document.getElementById("funcionario_id").addEventListener("change", function() {
     let saldo = this.options[this.selectedIndex].dataset.saldo || "";
-    document.getElementById("span_saldo").innerText =
-        saldo + " dias restantes";
+    document.getElementById("span_saldo").innerText = saldo + " dias restantes";
 });
 
 function limparFormulario() {
@@ -133,7 +174,7 @@ function limparFormulario() {
     document.getElementById("span_saldo").innerText = "selecione um funcionário";
 
     document.getElementById("agendado_sap").value = "não";
-    document.getElementById("abono_peculiario").value = "não";
+    document.getElementById("abono_pecuniario").value = "não";
     document.getElementById("inicio").value = "";
     document.getElementById("fim").value = "";
     document.getElementById("folga_ano_anterior").value = "";
@@ -141,7 +182,9 @@ function limparFormulario() {
 
     document.getElementById("btnSubmit").innerText = "Salvar";
 }
+
 document.getElementById("inicio").addEventListener("change", function () {
+
     let saldo = parseInt(document.querySelector("#span_saldo").innerText);
     if (!saldo || saldo <= 0) return;
 

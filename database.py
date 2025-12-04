@@ -39,6 +39,19 @@ def create_database():
             FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
         );
     """)
+    # ----------------------------
+    # Tabela de Folga Assiduidade (nova)
+    # ----------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS folga_assiduidade (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            funcionario_id INTEGER NOT NULL,
+            ano INTEGER NOT NULL,
+            data_folga TEXT NOT NULL,
+            FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
+        );
+    """)
+
 
     conn.commit()
     conn.close()
