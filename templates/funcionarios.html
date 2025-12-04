@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Funcionários</h1>
+
+<form action="/adicionar-funcionario" method="POST">
+    <input type="text" name="nome" placeholder="Nome do funcionário" required>
+    <button type="submit">Adicionar</button>
+</form>
+
+<table border="1" cellpadding="8" width="500">
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Ações</th>
+    </tr>
+
+    {% for f in funcionarios %}
+    <tr>
+        <td>{{ f[0] }}</td>
+        <td>{{ f[1] }}</td>
+        <td>
+            <a href="/deletar-funcionario/{{ f[0] }}" style="color:red;">Excluir</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
