@@ -3,5 +3,77 @@
 
 <h1>Bem-vindo!</h1>
 <p>Use o menu para navegar entre as funcionalidades.</p>
+<h2>Cadastro de Férias</h2>
+
+<form action="/adicionar-ferias" method="POST" class="form-section">
+
+    <label>Funcionário:</label>
+    <select name="funcionario_id" required>
+        <option value="">Selecione...</option>
+        {% for f in funcionarios %}
+            <option value="{{ f[0] }}">{{ f[1] }}</option>
+        {% endfor %}
+    </select>
+
+    <label>Agendado SAP:</label>
+    <select name="agendado_sap">
+        <option value="sim">Sim</option>
+        <option value="não">Não</option>
+    </select>
+
+    <label>Período (dias):</label>
+    <input type="number" name="periodo_dias" min="1" required>
+
+    <label>Abono Pecuniário:</label>
+    <select name="abono_peculiario">
+        <option value="sim">Sim</option>
+        <option value="não">Não</option>
+    </select>
+
+    <label>Data de início:</label>
+    <input type="date" name="inicio" required>
+
+    <label>Data de término:</label>
+    <input type="date" name="fim" required>
+
+    <label>Folga assiduidade ({{ ano_atual }}):</label>
+    <input type="date" name="folga_ano_anterior">
+
+    <label>Folga assiduidade ({{ ano_proximo }}):</label>
+    <input type="date" name="folga_ano">
+
+    <button type="submit" class="btn">Salvar</button>
+
+</form>
+
+<hr>
+
+<h2>Férias cadastradas</h2>
+
+<table class="table">
+    <tr>
+        <th>Funcionário</th>
+        <th>Agendado SAP</th>
+        <th>Período (dias)</th>
+        <th>Abono Pecuniário</th>
+        <th>Início</th>
+        <th>Término</th>
+        <th>Folga assiduidade ({{ ano_atual }})</th>
+        <th>Folga assiduidade ({{ ano_proximo }})</th>
+    </tr>
+
+    {% for f in ferias %}
+    <tr>
+        <td>{{ f[1] }}</td>
+        <td>{{ f[5] }}</td>
+        <td>{{ f[6] }}</td>
+        <td>{{ f[3] }} dias</td>
+        <td>{{ f[2] }}</td>
+        <td>{{ f[4] }}</td>
+        <td>{{ f[7] or '-' }}</td>
+        <td>{{ f[8] or '-' }}</td>
+    </tr>
+    {% endfor %}
+</table>
 
 {% endblock %}

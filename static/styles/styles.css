@@ -167,3 +167,40 @@ h2 {
    ========================================= */
 .mt-10 { margin-top: 10px; }
 .mt-20 { margin-top: 20px; }
+
+
+.form-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-width: 600px;
+    margin-bottom: 25px;
+}
+
+.form-section label {
+    font-weight: bold;
+}
+
+input, select {
+    padding: 6px;
+    font-size: 14px;
+}
+
+.btn {
+    grid-column: span 2;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
