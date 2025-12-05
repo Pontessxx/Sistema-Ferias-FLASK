@@ -1,6 +1,5 @@
 from database import get_connection
 
-
 # =======================================
 # FORMATAR DATA PARA dd-MM-yyyy
 # =======================================
@@ -14,7 +13,6 @@ def formatar_data(data_str):
 # =======================================
 # LISTAR FÉRIAS + FOLGAS POR ANO
 # =======================================
-
 def listar_ferias(ano_atual, ano_proximo):
     conn = get_connection()
     cursor = conn.cursor()
@@ -43,7 +41,7 @@ def listar_ferias(ano_atual, ano_proximo):
             ) AS folga_proximo
         FROM ferias f
         JOIN funcionarios func ON func.id = f.funcionario_id
-        ORDER BY f.data_inicio;
+        ORDER BY f.funcionario_id, f.data_inicio;
     """
 
     cursor.execute(query, (ano_atual, ano_proximo))
@@ -62,18 +60,12 @@ def listar_ferias(ano_atual, ano_proximo):
             sap,
             dias,
             abono,
-
-            # formato BR para exibir na tabela
             formatar_data(inicio_iso),
             formatar_data(fim_iso),
             formatar_data(folga_atual_iso),
             formatar_data(folga_proximo_iso),
-
-            # formato ISO para o JS preencher o input
             inicio_iso,
-            fim_iso,
-            folga_atual_iso or "",
-            folga_proximo_iso or ""
+            fim_iso
         ))
 
     return dados_formatados
@@ -127,10 +119,10 @@ def existe_sobreposicao(funcionario_id, inicio, fim, ignorar_ferias_id=None):
 
 # =======================================
 # ADICIONAR FÉRIAS
+# (sem folga_anterior e folga_ano)
 # =======================================
 def adicionar_ferias(funcionario_id, agendado_sap, periodo_dias,
-                     abono_peculiario, data_inicio, data_fim,
-                     folga_ano_anterior, folga_ano, cor):
+                     abono_peculiario, data_inicio, data_fim, cor):
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -143,10 +135,8 @@ def adicionar_ferias(funcionario_id, agendado_sap, periodo_dias,
             abono_peculiario,
             data_inicio,
             data_fim,
-            folga_assiduidade_ano_anterior,
-            folga_assiduidade_ano,
             cor
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
         funcionario_id,
         agendado_sap,
@@ -154,8 +144,6 @@ def adicionar_ferias(funcionario_id, agendado_sap, periodo_dias,
         abono_peculiario,
         data_inicio,
         data_fim,
-        folga_ano_anterior,
-        folga_ano,
         cor
     ))
 
@@ -177,10 +165,10 @@ def deletar_ferias(ferias_id):
 
 # =======================================
 # ATUALIZAR FÉRIAS
+# (corrigido — sem folga)
 # =======================================
 def atualizar_ferias(ferias_id, agendado_sap, periodo_dias,
-                     abono_peculiario, data_inicio, data_fim,
-                     folga_ano_anterior, folga_ano, cor):
+                     abono_peculiario, data_inicio, data_fim, cor):
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -192,8 +180,6 @@ def atualizar_ferias(ferias_id, agendado_sap, periodo_dias,
             abono_peculiario = ?,
             data_inicio = ?,
             data_fim = ?,
-            folga_assiduidade_ano_anterior = ?,
-            folga_assiduidade_ano = ?,
             cor = ?
         WHERE id = ?
     """, (
@@ -202,8 +188,6 @@ def atualizar_ferias(ferias_id, agendado_sap, periodo_dias,
         abono_peculiario,
         data_inicio,
         data_fim,
-        folga_ano_anterior,
-        folga_ano,
         cor,
         ferias_id
     ))

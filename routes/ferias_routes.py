@@ -12,7 +12,6 @@ from datetime import datetime
 
 ferias_bp = Blueprint("ferias", __name__)
 
-
 # =======================================
 # PÁGINA INICIAL
 # =======================================
@@ -24,7 +23,6 @@ def pagina_inicial():
     funcionarios = listar_funcionarios()
     ferias = listar_ferias(ano_atual, ano_proximo)
 
-    # Montar lista com saldo de férias
     funcionarios_saldo = []
     for f in funcionarios:
         saldo = 30 - total_dias_ferias(f[0])
@@ -50,7 +48,6 @@ def route_adicionar_ferias():
     inicio = request.form.get("inicio")
     fim = request.form.get("fim")
 
-    # Converter datas
     data_i = datetime.strptime(inicio, "%Y-%m-%d")
     data_f = datetime.strptime(fim, "%Y-%m-%d")
     dias_novos = (data_f - data_i).days + 1
@@ -63,12 +60,8 @@ def route_adicionar_ferias():
     if dias_ja + dias_novos > 30:
         return f"Erro: funcionário já tirou {dias_ja} dias. Somando {dias_novos}, ultrapassa 30."
 
-    # Checar sobreposição
     if existe_sobreposicao(funcionario_id, inicio, fim):
         return "Erro: já existe férias cadastrada que se sobrepõe a este período."
-
-    folga_ant = request.form.get("folga_ano_anterior")
-    folga_ano = request.form.get("folga_ano")
 
     adicionar_ferias(
         funcionario_id,
@@ -77,8 +70,6 @@ def route_adicionar_ferias():
         abono,
         inicio,
         fim,
-        folga_ant,
-        folga_ano,
         cor="#4CAF50"
     )
 
@@ -96,16 +87,12 @@ def route_atualizar_ferias(ferias_id):
     inicio = request.form.get("inicio")
     fim = request.form.get("fim")
 
-    data_i = datetime.strptime(inicio, "%Y-%m-%d")
-    data_f = datetime.strptime(fim, "%Y-%m-%d")
-    dias_novos = (data_f - data_i).days + 1
-
-    # Checar sobreposição ignorando esta própria linha
     if existe_sobreposicao(funcionario_id, inicio, fim, ignorar_ferias_id=ferias_id):
         return "Erro: já existe férias cadastrada que se sobrepõe a este período."
 
-    folga_ant = request.form.get("folga_ano_anterior")
-    folga_ano = request.form.get("folga_ano")
+    data_i = datetime.strptime(inicio, "%Y-%m-%d")
+    data_f = datetime.strptime(fim, "%Y-%m-%d")
+    dias_novos = (data_f - data_i).days + 1
 
     atualizar_ferias(
         ferias_id,
@@ -114,8 +101,6 @@ def route_atualizar_ferias(ferias_id):
         abono,
         inicio,
         fim,
-        folga_ant,
-        folga_ano,
         cor="#4CAF50"
     )
 

@@ -32,9 +32,9 @@
 
     <div class="form-group">
         <label>Abono Pecuniário:</label>
-        <select name="abono_pecuniario" id="abono_pecuniario">
+        <select name="abono_peculiario" id="abono_peculiario">
             <option value="sim">Sim</option>
-            <option value="não">Não</option>
+            <option value="não" selected>Não</option>
         </select>
     </div>
 
@@ -48,22 +48,13 @@
         <input type="date" name="fim" id="fim" required>
     </div>
 
-    <div class="form-group">
-        <label>Folga assiduidade ({{ ano_atual }}):</label>
-        <input type="date" name="folga_ano_anterior" id="folga_ano_anterior">
-    </div>
 
-    <div class="form-group">
-        <label>Folga assiduidade ({{ ano_proximo }}):</label>
-        <input type="date" name="folga_ano" id="folga_ano">
+    <div class="form-buttons">
+        <button type="submit" id="btnSubmit" class="btn">Salvar</button>
+        <button type="button" class="btn-secondary" onclick="limparFormulario()">Limpar</button>
     </div>
-
 </form>
 
-<div class="form-buttons">
-    <button type="submit" id="btnSubmit" class="btn">Salvar</button>
-    <button type="button" class="btn-secondary" onclick="limparFormulario()">Limpar</button>
-</div>
 
 
 <h2>Folga Assiduidade</h2>
@@ -95,12 +86,12 @@
         <input type="date" name="data_folga" id="data_folga" required>
     </div>
 
+    
+    <div class="form-buttons">
+        <button type="submit" form="formFolga" id="btnFolga" class="btn">Salvar Folga</button>
+        <button type="button" id="btnExcluirFolga" class="btn-secondary" onclick="excluirFolga()" style="display:none;">Excluir Folga</button>
+    </div>
 </form>
-
-<div class="form-buttons">
-    <button type="submit" form="formFolga" id="btnFolga" class="btn">Salvar Folga</button>
-    <button type="button" id="btnExcluirFolga" class="btn-secondary" onclick="excluirFolga()" style="display:none;">Excluir Folga</button>
-</div>
 
 <hr>
 
@@ -148,11 +139,11 @@ function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, 
     document.getElementById("span_saldo").innerText = saldo + " dias restantes";
 
     document.getElementById("agendado_sap").value = sap;
-    document.getElementById("abono_pecuniario").value = abono;
+    document.getElementById("abono_peculiario").value = abono;
 
     document.getElementById("inicio").value = inicioISO;
     document.getElementById("fim").value = fimISO;
-    document.getElementById("folga_ano_anterior").value = folgaAntISO;
+    // document.getElementById("folga_ano_anterior").value = folgaAntISO;
     document.getElementById("folga_ano").value = folgaAnoISO;
 
     document.getElementById("formFerias").action = "/atualizar-ferias/" + id;
@@ -173,10 +164,10 @@ function limparFormulario() {
     document.getElementById("span_saldo").innerText = "selecione um funcionário";
 
     document.getElementById("agendado_sap").value = "não";
-    document.getElementById("abono_pecuniario").value = "não";
+    document.getElementById("abono_peculiario").value = "não";
     document.getElementById("inicio").value = "";
     document.getElementById("fim").value = "";
-    document.getElementById("folga_ano_anterior").value = "";
+    // document.getElementById("folga_ano_anterior").value = "";
     document.getElementById("folga_ano").value = "";
 
     document.getElementById("btnSubmit").innerText = "Salvar";
