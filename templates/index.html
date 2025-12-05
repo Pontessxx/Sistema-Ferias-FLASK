@@ -48,30 +48,80 @@
         <input type="date" name="fim" id="fim" required>
     </div>
 
-
     <div class="form-buttons">
         <button type="submit" id="btnSubmit" class="btn">Salvar</button>
         <button type="button" class="btn-secondary" onclick="limparFormulario()">Limpar</button>
     </div>
+
 </form>
-
-
-<hr>
 
 <h2>Férias cadastradas</h2>
 
-<table class="table">
-    <tr>
-        <th>Funcionário</th>
-        <th>Agendado SAP</th>
-        <th>Período</th>
-        <th>Abono</th>
-        <th>Início</th>
-        <th>Término</th>
-        <th>Folga ({{ ano_atual }})</th>
-        <th>Folga ({{ ano_proximo }})</th>
-    </tr>
+<!-- ========================================= -->
+<!--                FILTROS                    -->
+<!-- ========================================= -->
 
+<div class="filters">
+
+    <select id="filtro_funcionario">
+        <option value="">Todos funcionários</option>
+        {% for f in funcionarios %}
+            <option value="{{ f[0] }}">{{ f[1] }}</option>
+        {% endfor %}
+    </select>
+
+    <select id="filtro_ano">
+        <option value="">Todos anos</option>
+        <option value="{{ ano_atual }}">{{ ano_atual }}</option>
+        <option value="{{ ano_proximo }}">{{ ano_proximo }}</option>
+    </select>
+
+    <select id="filtro_mes">
+        <option value="">Todos meses</option>
+        <option value="1">Janeiro</option>
+        <option value="2">Fevereiro</option>
+        <option value="3">Março</option>
+        <option value="4">Abril</option>
+        <option value="5">Maio</option>
+        <option value="6">Junho</option>
+        <option value="7">Julho</option>
+        <option value="8">Agosto</option>
+        <option value="9">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+    </select>
+
+    <select id="filtro_abono">
+        <option value="">Abono (todos)</option>
+        <option value="sim">Com abono</option>
+        <option value="não">Sem abono</option>
+    </select>
+
+    <select id="filtro_sap">
+        <option value="">SAP (todos)</option>
+        <option value="sim">Sim</option>
+        <option value="não">Não</option>
+    </select>
+
+</div>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Funcionário</th>
+            <th>Agendado SAP</th>
+            <th>Período</th>
+            <th>Abono</th>
+            <th>Início</th>
+            <th>Término</th>
+            <th>Folga ({{ ano_atual }})</th>
+            <th>Folga ({{ ano_proximo }})</th>
+        </tr>
+    </thead>
+
+    <tbody>
     {% for f in ferias %}
     <tr class="clickable-row"
         onclick="carregarFerias(
@@ -88,11 +138,13 @@
         <td>{{ f[9] or '-' }}</td>
     </tr>
     {% endfor %}
+    </tbody>
 </table>
 
-
 <script>
-
+// ===============================
+// CARREGAR DADOS PARA FORMULÁRIO
+// ===============================
 function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, folgaAntISO, folgaAnoISO) {
 
     document.getElementById("ferias_id").value = id;
@@ -106,19 +158,14 @@ function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, 
 
     document.getElementById("inicio").value = inicioISO;
     document.getElementById("fim").value = fimISO;
-    // document.getElementById("folga_ano_anterior").value = folgaAntISO;
-    document.getElementById("folga_ano").value = folgaAnoISO;
 
     document.getElementById("formFerias").action = "/atualizar-ferias/" + id;
     document.getElementById("btnSubmit").innerText = "Atualizar Férias";
 }
 
-
-document.getElementById("funcionario_id").addEventListener("change", function() {
-    let saldo = this.options[this.selectedIndex].dataset.saldo || "";
-    document.getElementById("span_saldo").innerText = saldo + " dias restantes";
-});
-
+// ===============================
+// LIMPAR FORMULÁRIO
+// ===============================
 function limparFormulario() {
     document.getElementById("ferias_id").value = "";
     document.getElementById("formFerias").action = "/adicionar-ferias";
@@ -130,65 +177,57 @@ function limparFormulario() {
     document.getElementById("abono_peculiario").value = "não";
     document.getElementById("inicio").value = "";
     document.getElementById("fim").value = "";
-    // document.getElementById("folga_ano_anterior").value = "";
-    document.getElementById("folga_ano").value = "";
-
     document.getElementById("btnSubmit").innerText = "Salvar";
 }
 
-
 // ===============================
-//      CONTROLE DE FOLGA
+// FILTROS — busca dinâmica
 // ===============================
+function aplicarFiltros() {
+    let funcionario = document.getElementById("filtro_funcionario").value;
+    let ano = document.getElementById("filtro_ano").value;
+    let mes = document.getElementById("filtro_mes").value;
+    let abono = document.getElementById("filtro_abono").value;
+    let sap = document.getElementById("filtro_sap").value;
 
-// detecta mudanças
-document.getElementById("funcionario_folga_id").addEventListener("change", verificarFolga);
-document.getElementById("ano").addEventListener("change", verificarFolga);
-
-function verificarFolga() {
-
-    const funcionarioId = document.getElementById("funcionario_folga_id").value;
-    const ano = document.getElementById("ano").value;
-
-    if (!funcionarioId || !ano) return;
-
-    fetch("/buscar-folga", {
+    fetch("/filtrar-ferias", {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: `funcionario_id=${funcionarioId}&ano=${ano}`
+        body: `funcionario_id=${funcionario}&ano=${ano}&mes=${mes}&abono=${abono}&sap=${sap}`
     })
     .then(res => res.json())
-    .then(data => {
+    .then(lista => atualizarTabela(lista));
+}
 
-        if (data.id) {
-            // Já existe folga → modo atualização
-            document.getElementById("folga_id").value = data.id;
-            document.getElementById("data_folga").value = data.data;
+// ===============================
+// ATUALIZAR TABELA
+// ===============================
+function atualizarTabela(lista) {
+    let tbody = document.querySelector(".table tbody");
+    tbody.innerHTML = "";
 
-            document.getElementById("formFolga").action = `/atualizar-folga/${data.id}`;
-            document.getElementById("btnFolga").innerText = "Atualizar Folga";
-            document.getElementById("btnExcluirFolga").style.display = "inline-block";
-
-        } else {
-            // Não existe → cadastrar
-            document.getElementById("folga_id").value = "";
-            document.getElementById("data_folga").value = "";
-
-            document.getElementById("formFolga").action = "/adicionar-folga";
-            document.getElementById("btnFolga").innerText = "Salvar Folga";
-            document.getElementById("btnExcluirFolga").style.display = "none";
-        }
+    lista.forEach(f => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${f.funcionario}</td>
+                <td>${f.sap}</td>
+                <td>${f.dias} dias</td>
+                <td>${f.abono}</td>
+                <td>${f.inicio}</td>
+                <td>${f.fim}</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+        `;
     });
 }
 
-function excluirFolga() {
-    const id = document.getElementById("folga_id").value;
-
-    if (!id)
-        return alert("Erro: sem ID da folga.");
-
-    window.location.href = `/deletar-folga/${id}`;
-}
+// Ativar filtros
+document.getElementById("filtro_funcionario").addEventListener("change", aplicarFiltros);
+document.getElementById("filtro_ano").addEventListener("change", aplicarFiltros);
+document.getElementById("filtro_mes").addEventListener("change", aplicarFiltros);
+document.getElementById("filtro_abono").addEventListener("change", aplicarFiltros);
+document.getElementById("filtro_sap").addEventListener("change", aplicarFiltros);
 
 </script>
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for
 from services.funcionario_service import listar_funcionarios
 from services.ferias_service import (
     adicionar_ferias,
@@ -114,3 +114,18 @@ def route_atualizar_ferias(ferias_id):
 def route_deletar_ferias(ferias_id):
     deletar_ferias(ferias_id)
     return redirect(url_for("ferias.pagina_inicial"))
+
+
+@ferias_bp.route("/filtrar-ferias", methods=["POST"])
+def filtrar_ferias():
+    funcionario_id = request.form.get("funcionario_id")
+    ano = request.form.get("ano")
+    mes = request.form.get("mes")
+    abono = request.form.get("abono")
+    sap = request.form.get("sap")
+
+    from services.ferias_service import filtrar_ferias_service
+    dados = filtrar_ferias_service(funcionario_id, ano, mes, abono, sap)
+
+    return jsonify(dados)
+

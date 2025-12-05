@@ -194,3 +194,60 @@ def atualizar_ferias(ferias_id, agendado_sap, periodo_dias,
 
     conn.commit()
     conn.close()
+
+def filtrar_ferias_service(funcionario_id, ano, mes, abono, sap):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT
+            f.id, f.funcionario_id, func.nome,
+            f.agendado_sap, f.periodo_dias, f.abono_peculiario,
+            f.data_inicio, f.data_fim
+        FROM ferias f
+        JOIN funcionarios func ON func.id = f.funcionario_id
+        WHERE 1=1
+    """
+
+    params = []
+
+    if funcionario_id:
+        query += " AND f.funcionario_id = ?"
+        params.append(funcionario_id)
+
+    if ano:
+        query += " AND strftime('%Y', f.data_inicio) = ?"
+        params.append(str(ano))
+
+    if mes:
+        query += " AND strftime('%m', f.data_inicio) = ?"
+        params.append(f"{int(mes):02d}")
+
+    if abono:
+        query += " AND f.abono_peculiario = ?"
+        params.append(abono)
+
+    if sap:
+        query += " AND f.agendado_sap = ?"
+        params.append(sap)
+
+    query += " ORDER BY f.funcionario_id, f.data_inicio"
+
+    cursor.execute(query, params)
+    dados = cursor.fetchall()
+    conn.close()
+
+    lista = []
+    for r in dados:
+        lista.append({
+            "id": r[0],
+            "funcionario": r[2],
+            "sap": r[3],
+            "dias": r[4],
+            "abono": r[5],
+            "inicio": formatar_data(r[6]),
+            "fim": formatar_data(r[7])
+        })
+
+    return lista
+
