@@ -56,43 +56,6 @@
 </form>
 
 
-
-<h2>Folga Assiduidade</h2>
-
-<form action="/adicionar-folga" method="POST" id="formFolga" class="form-section">
-
-    <input type="hidden" id="folga_id" name="folga_id">
-
-    <div class="form-group">
-        <label>Funcionário:</label>
-        <select name="funcionario_folga_id" id="funcionario_folga_id" required>
-            <option value="">Selecione...</option>
-            {% for f in funcionarios %}
-                <option value="{{ f[0] }}">{{ f[1] }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Ano da folga:</label>
-        <select name="ano" id="ano" required>
-            <option value="{{ ano_atual }}">{{ ano_atual }}</option>
-            <option value="{{ ano_proximo }}">{{ ano_proximo }}</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Data da folga:</label>
-        <input type="date" name="data_folga" id="data_folga" required>
-    </div>
-
-    
-    <div class="form-buttons">
-        <button type="submit" form="formFolga" id="btnFolga" class="btn">Salvar Folga</button>
-        <button type="button" id="btnExcluirFolga" class="btn-secondary" onclick="excluirFolga()" style="display:none;">Excluir Folga</button>
-    </div>
-</form>
-
 <hr>
 
 <h2>Férias cadastradas</h2>

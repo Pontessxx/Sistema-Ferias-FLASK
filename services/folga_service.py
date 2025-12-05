@@ -50,3 +50,28 @@ def deletar_folga(folga_id):
     cursor.execute("DELETE FROM folga_assiduidade WHERE id = ?;", (folga_id,))
     conn.commit()
     conn.close()
+
+def listar_folgas():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT f.id, func.nome, f.ano, f.data_folga
+        FROM folga_assiduidade f
+        JOIN funcionarios func ON func.id = f.funcionario_id
+        ORDER BY func.nome, f.ano;
+    """)
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    # lista de objetos acessíveis por nome
+    return [
+        {
+            "id": row[0],
+            "nome": row[1],
+            "ano": row[2],
+            "data_folga": row[3]
+        }
+        for row in dados
+    ]
