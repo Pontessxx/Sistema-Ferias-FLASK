@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template
 from services.ferias_service import listar_periodos_para_gantt
+from services.folga_service import listar_folgas
 import plotly.figure_factory as ff
 import datetime as dt
 import holidays
@@ -14,26 +15,18 @@ def obter_feriados():
     ano_atual = dt.datetime.now().year
     ano_proximo = ano_atual + 1
 
-    # Feriados nacionais + estaduais SP
     feriados = holidays.Brazil(
         years=[ano_atual, ano_proximo],
         state="SP",
         language="pt_BR"
     )
 
-    # Feriado municipal (Osasco)
     feriados_osasco = {
         f"{ano_atual}-02-19": "Aniversário de Osasco",
         f"{ano_proximo}-02-19": "Aniversário de Osasco"
     }
 
-    all_feriados = {}
-
-    # Converte todas as datas para string YYYY-MM-DD
-    for data, nome in feriados.items():
-        all_feriados[str(data)] = nome
-
-    # Adiciona Osasco
+    all_feriados = {str(data): nome for data, nome in feriados.items()}
     all_feriados.update(feriados_osasco)
 
     return all_feriados
@@ -46,12 +39,14 @@ def obter_feriados():
 @gantt_bp.route("/gantt")
 def pagina_gantt():
     dados = listar_periodos_para_gantt()
+    folgas = listar_folgas()
     feriados = obter_feriados()
 
-    # ------------------------------
-    # Construir tasks para o Gantt
-    # ------------------------------
     tasks = []
+
+    # ============================================================
+    #   FÉRIAS  (AZUL)
+    # ============================================================
     for nome, inicio, fim in dados:
         tasks.append(dict(
             Task=nome,
@@ -60,7 +55,26 @@ def pagina_gantt():
             Resource="Férias"
         ))
 
-    # Criar gráfico Gantt
+    # ============================================================
+    #   FOLGAS (1 DIA – LARANJA)
+    # ============================================================
+    for f in folgas:
+        nome = f["nome"]
+        data = f["data_folga"]
+
+        inicio = data
+        fim = (dt.datetime.strptime(data, "%Y-%m-%d") + dt.timedelta(days=1)).strftime("%Y-%m-%d")
+
+        tasks.append(dict(
+            Task=nome,
+            Start=inicio,
+            Finish=fim,
+            Resource="Folga"
+        ))
+
+    # ============================================================
+    #   CRIAR O GANTT COM CORES FIXAS
+    # ============================================================
     fig = ff.create_gantt(
         tasks,
         index_col="Resource",
@@ -68,12 +82,16 @@ def pagina_gantt():
         group_tasks=True,
         showgrid_x=True,
         showgrid_y=True,
-        height=600,
+        height=650,
+          colors={
+            "Férias": "rgb(0, 102, 204)",   # azul forte
+            "Folga": "rgb(255, 140, 0)"     # laranja
+        }
     )
 
-    # ------------------------------
-    # Inserir linhas dos feriados
-    # ------------------------------
+    # ============================================================
+    #   INSERIR LINHAS DOS FERIADOS
+    # ============================================================
     shapes = list(fig['layout'].shapes or [])
 
     for data, descricao in feriados.items():
@@ -85,37 +103,46 @@ def pagina_gantt():
             "y0": -1,
             "x1": d,
             "y1": len(tasks),
-            "line": {
-                "color": "red",
-                "width": 2,
-                "dash": "dot"
-            }
+            "line": {"color": "red", "width": 2, "dash": "dot"}
         })
 
     fig['layout'].shapes = tuple(shapes)
 
-    # Exportar o HTML do gráfico
-    grafico_html = fig.to_html(full_html=False)
-
     # ============================================================
-    #   REMOVER DUPLICADOS (mesmo dia/mês) E ORDENAR
+    #   REMOVER TÍTULO AUTOMÁTICO
     # ============================================================
-
-    # Ex.: "2025-01-01" → chave somente "01-01"
-    feriados_sem_duplicados = {}
-    for data, nome in feriados.items():
-        chave_dm = data[5:10]  # MM-DD
-        feriados_sem_duplicados[chave_dm] = nome  # sobrescreve duplicados
-
-    # Ordenar por mês e dia
-    feriados_ordenados = dict(
-        sorted(
-            feriados_sem_duplicados.items(),
-            key=lambda x: (int(x[0][0:2]), int(x[0][3:5]))  # MM-DD → (MM, DD)
-        )
+    fig.update_layout(
+        title=None,
+        margin=dict(t=20)
     )
 
     # ============================================================
+    #   LEGENDA DOS FERIADOS (TRACE INVISÍVEL)
+    # ============================================================
+    fig.add_trace({
+        "x": [None],
+        "y": [None],
+        "mode": "lines",
+        "line": {"color": "red", "width": 2, "dash": "dot"},
+        "name": "Feriados"
+    })
+
+    grafico_html = fig.to_html(full_html=False)
+
+    # ============================================================
+    #   FERIADOS PARA TABELA (sem duplicar anos)
+    # ============================================================
+    feriados_sem_duplicados = {}
+    for data, nome in feriados.items():
+        chave_dm = data[5:10]  # MM-DD
+        feriados_sem_duplicados[chave_dm] = nome
+
+    feriados_ordenados = dict(
+        sorted(
+            feriados_sem_duplicados.items(),
+            key=lambda x: (int(x[0][0:2]), int(x[0][3:5]))
+        )
+    )
 
     return render_template(
         "gantt.html",
