@@ -31,7 +31,11 @@ body {
 
 .content {
     padding: 25px;
+    margin-top: 50px;  /* mesma altura do topbar */
+    position: relative;
+    z-index: 1;
 }
+
 
 /* =========================================
    TOPBAR (menu superior)
@@ -43,7 +47,15 @@ body {
     display: flex;
     align-items: center;
     font-size: 18px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;     /* Define altura PADRÃO */
+    z-index: 9999;
 }
+
 
 .hamburger {
     font-size: 26px;
@@ -63,8 +75,10 @@ body {
     background-color: var(--cor-menu-fundo);
     overflow-x: hidden;
     transition: 0.3s;
-    padding-top: 60px;
+    padding-top: 50px;   /* agora combina com a topbar */
+    z-index: 10000;
 }
+
 
 .sidebar a {
     padding: 12px 20px;
@@ -287,4 +301,34 @@ h2 {
 }
 .table-holidays tr:nth-child(even) {
     background-color: #f9f9f9;
+}
+
+/* =========================================
+   AJUSTE DE CAMADAS (Z-INDEX)
+   ========================================= */
+
+/* Menu superior sempre na frente */
+.topbar {
+    position: fixed;
+    width: 100%;
+    z-index: 9999;
+}
+
+/* O conteúdo deve descer para não ficar atrás do topbar */
+.content {
+    margin-top: 60px;  /* ajuste se precisar */
+    position: relative;
+    z-index: 1;
+}
+
+/* Sidebar por cima do gráfico */
+.sidebar {
+    z-index: 10000;
+    position: fixed;
+}
+
+/* Plotly usa divs absolutas, então precisamos garantir que fique atrás */
+.plot-container,
+.js-plotly-plot {
+    z-index: 0 !important;
 }
