@@ -129,3 +129,7 @@ def filtrar_ferias():
 
     return jsonify(dados)
 
+@ferias_bp.route("/saldo/<int:func_id>")
+def pegar_saldo(func_id):
+    saldo = 30 - total_dias_ferias(func_id)
+    return jsonify({"saldo": saldo})

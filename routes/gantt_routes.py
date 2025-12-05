@@ -1,40 +1,36 @@
 from flask import Blueprint, render_template
 from services.ferias_service import listar_periodos_para_gantt
 from services.folga_service import listar_folgas
-import plotly.figure_factory as ff
+import plotly.express as px
+import plotly.graph_objects as go
 import datetime as dt
 import holidays
 
 gantt_bp = Blueprint("gantt", __name__)
 
 
-# ============================================================
-#   FUNÇÃO PARA OBTER FERIADOS DO ANO ATUAL E PRÓXIMO
-# ============================================================
 def obter_feriados():
     ano_atual = dt.datetime.now().year
-    ano_proximo = ano_atual + 1
+    ano_prox = ano_atual + 1
 
     feriados = holidays.Brazil(
-        years=[ano_atual, ano_proximo],
+        years=[ano_atual, ano_prox],
         state="SP",
         language="pt_BR"
     )
 
-    feriados_osasco = {
-        f"{ano_atual}-02-19": "Aniversário de Osasco",
-        f"{ano_proximo}-02-19": "Aniversário de Osasco"
-    }
+    feriados[dt.date(ano_atual, 2, 19)] = "Aniversário de Osasco"
+    feriados[dt.date(ano_prox, 2, 19)] = "Aniversário de Osasco"
 
-    all_feriados = {str(data): nome for data, nome in feriados.items()}
-    all_feriados.update(feriados_osasco)
+    resultado = {}
 
-    return all_feriados
+    for data, nome in feriados.items():
+        if isinstance(data, dt.date):
+            resultado[data.strftime("%Y-%m-%d")] = nome
+
+    return resultado
 
 
-# ============================================================
-#   ROTA DO GANTT
-# ============================================================
 @gantt_bp.route("/gantt")
 def pagina_gantt():
     dados = listar_periodos_para_gantt()
@@ -43,147 +39,92 @@ def pagina_gantt():
 
     tasks = []
 
-    # ============================================================
-    #   FÉRIAS  (AZUL)
-    # ============================================================
+    # Férias
     for nome, inicio, fim in dados:
-        tasks.append(dict(
-            Task=nome,
-            Start=inicio,
-            Finish=fim,
-            Resource="Férias"
-        ))
+        tasks.append({
+            "Funcionário": nome,
+            "Inicio": inicio,
+            "Fim": fim,
+            "Tipo": "Férias"
+        })
 
-    # ============================================================
-    #   FOLGAS (1 DIA – LARANJA)
-    # ============================================================
+    # Folgas
     for f in folgas:
         nome = f["nome"]
         data = f["data_folga"]
+        dt_inicio = dt.datetime.strptime(data, "%Y-%m-%d")
+        dt_fim = dt_inicio + dt.timedelta(days=1)
 
-        inicio = data
-        fim = (dt.datetime.strptime(data, "%Y-%m-%d") +
-               dt.timedelta(days=1)).strftime("%Y-%m-%d")
+        tasks.append({
+            "Funcionário": nome,
+            "Inicio": dt_inicio.strftime("%Y-%m-%d"),
+            "Fim": dt_fim.strftime("%Y-%m-%d"),
+            "Tipo": "Folga"
+        })
 
-        tasks.append(dict(
-            Task=nome,
-            Start=inicio,
-            Finish=fim,
-            Resource="Folga"
-        ))
+    if not tasks:
+        return render_template("gantt.html",
+                               grafico_html="<h3>Sem dados</h3>",
+                               feriados={})
 
-    # ============================================================
-    #   CRIAR O GANTT COM CORES FIXAS
-    # ============================================================
-    fig = ff.create_gantt(
+    # Criar o Gantt
+    fig = px.timeline(
         tasks,
-        index_col="Resource",
-        show_colorbar=True,
-        group_tasks=True,
-        showgrid_x=True,
-        showgrid_y=True,
-        height=650,
-        colors={
-            "Férias": "rgb(0, 102, 204)",   # azul
-            "Folga": "rgb(255, 140, 0)"     # laranja
-        }
+        x_start="Inicio",
+        x_end="Fim",
+        color="Tipo",
+        color_discrete_map={
+            "Férias": "rgb(0,102,204)",
+            "Folga": "rgb(255,140,0)"
+        },
+        y="Funcionário",
     )
 
-    # ============================================================
-    #   INSERIR LINHAS DOS FERIADOS
-    # ============================================================
-    shapes = list(fig['layout'].shapes or [])
+    fig.update_yaxes(autorange="reversed")
+    # fig.update_yaxes(title=None)
 
-    for data, descricao in feriados.items():
-        d = dt.datetime.strptime(data, "%Y-%m-%d")
+    # SHAPES dos feriados
+    shapes = []
+
+    for data, nome in feriados.items():
+        dt_data = dt.datetime.strptime(data, "%Y-%m-%d")
 
         shapes.append({
             "type": "line",
-            "x0": d,
-            "y0": -1,
-            "x1": d,
-            "y1": len(tasks),
-            "line": {"color": "red", "width": 2, "dash": "dot"}
+            "x0": dt_data,
+            "x1": dt_data,
+            "y0": -0.5,
+            "y1": len(tasks) - 0.5,
+            "line": {"color": "red", "width": 2, "dash": "dot"},
+            "xref": "x",
+            "yref": "y"
         })
 
-    # ============================================================
-    #   DESTACAR SÁBADOS E DOMINGOS (FUNDO CINZA CLARO)
-    # ============================================================
-    ano_atual = dt.datetime.now().year
-    data_min = dt.datetime(ano_atual, 1, 1)
-    data_max = dt.datetime(ano_atual + 1, 12, 31)
+    # finais de semana
+    ano = dt.datetime.now().year
+    inicio = dt.datetime(ano, 1, 1)
+    fim = dt.datetime(ano + 1, 12, 31)
 
-    dias = (data_max - data_min).days + 1
+    for i in range((fim - inicio).days):
+        dia = inicio + dt.timedelta(days=i)
 
-    for i in range(dias):
-        dia = data_min + dt.timedelta(days=i)
-
-        if dia.weekday() in (5, 6):  # sábado/domingo
+        if dia.weekday() in (5, 6):
             shapes.append({
                 "type": "rect",
                 "x0": dia,
                 "x1": dia + dt.timedelta(days=1),
-                "y0": -1,
-                "y1": len(tasks) + 1,
-                "fillcolor": "rgba(190,190,190,1)",  # cinza claro
-                "line_width": 0,
-                "layer": "below"
+                "y0": -0.5,
+                "y1": len(tasks) - 0.5,
+                "fillcolor": "rgba(200,200,200,0.5)",
+                "line": {"width": 0}
             })
 
-    fig['layout'].shapes = tuple(shapes)
-
-    # ============================================================
-    #   REMOVER TÍTULO AUTOMÁTICO
-    # ============================================================
-    fig.update_layout(
-        title="",
-        margin=dict(t=40)
-    )
-
-    # ============================================================
-    #   LEGENDA DOS FERIADOS
-    # ============================================================
-    fig.add_trace({
-        "x": [None],
-        "y": [None],
-        "mode": "lines",
-        "line": {"color": "red", "width": 2, "dash": "dot"},
-        "name": "Feriados"
-    })
-
-    # ============================================================
-    #   LEGENDA DOS FINAIS DE SEMANA
-    # ============================================================
-    fig.add_trace({
-        "x": [None],
-        "y": [None],
-        "mode": "markers",
-        "marker": {
-            "size": 12,
-            "color": "rgba(190,190,190,1)"
-        },
-        "name": "Sábados e Domingos"
-    })
+    fig.update_layout(shapes=shapes)
 
     grafico_html = fig.to_html(full_html=False)
 
-    # ============================================================
-    #   FERIADOS PARA A TABELA (SEM DUPLICAR ANOS)
-    # ============================================================
-    feriados_sem_duplicados = {}
-    for data, nome in feriados.items():
-        chave_dm = data[5:10]  # MM-DD
-        feriados_sem_duplicados[chave_dm] = nome
+    feriados_ordenados = dict(sorted(feriados.items()))
 
-    feriados_ordenados = dict(
-        sorted(
-            feriados_sem_duplicados.items(),
-            key=lambda x: (int(x[0][0:2]), int(x[0][3:5]))
-        )
-    )
-
-    return render_template(
-        "gantt.html",
-        grafico_html=grafico_html,
-        feriados=feriados_ordenados
-    )
+    return render_template("gantt.html",
+                           grafico_html=grafico_html,
+                           feriados=feriados_ordenados)

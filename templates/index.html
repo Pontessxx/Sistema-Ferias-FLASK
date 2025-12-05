@@ -9,7 +9,7 @@
 
     <div class="form-group">
         <label>Funcionário:</label>
-        <select name="funcionario_id" id="funcionario_id" required>
+        <select name="funcionario_id" id="funcionario_id" required  onchange="atualizarSaldo()">
             <option value="">Selecione...</option>
             {% for f in funcionarios %}
                 <option value="{{ f[0] }}" data-saldo="{{ f[2] }}">{{ f[1] }}</option>
@@ -149,9 +149,13 @@ function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, 
 
     document.getElementById("ferias_id").value = id;
     document.getElementById("funcionario_id").value = funcionarioId;
+    fetch(`/saldo/${funcionarioId}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("span_saldo").innerText =
+                data.saldo + " dias restantes";
+        });
 
-    let saldo = document.querySelector(`option[value="${funcionarioId}"]`).dataset.saldo;
-    document.getElementById("span_saldo").innerText = saldo + " dias restantes";
 
     document.getElementById("agendado_sap").value = sap;
     document.getElementById("abono_peculiario").value = abono;
@@ -161,6 +165,18 @@ function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, 
 
     document.getElementById("formFerias").action = "/atualizar-ferias/" + id;
     document.getElementById("btnSubmit").innerText = "Atualizar Férias";
+}
+
+function atualizarSaldo() {
+    let id = document.getElementById("funcionario_id").value;
+    if (!id) return;
+
+    fetch(`/saldo/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("span_saldo").innerText =
+                data.saldo + " dias restantes";
+        });
 }
 
 // ===============================
