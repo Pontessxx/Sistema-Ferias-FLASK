@@ -251,3 +251,22 @@ def filtrar_ferias_service(funcionario_id, ano, mes, abono, sap):
 
     return lista
 
+def listar_periodos_para_gantt():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT func.nome, f.data_inicio, f.data_fim
+        FROM ferias f
+        JOIN funcionarios func ON func.id = f.funcionario_id
+        ORDER BY func.nome, f.data_inicio
+    """)
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    lista = []
+    for nome, inicio, fim in dados:
+        lista.append((nome, inicio, fim))
+
+    return lista

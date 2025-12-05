@@ -3,6 +3,7 @@ from database import create_database
 from routes.funcionario_routes import funcionario_bp
 from routes.ferias_routes import ferias_bp
 from routes.folga_routes import folga_bp
+from routes.gantt_routes import gantt_bp
 
 app = Flask(__name__)
 
@@ -12,6 +13,7 @@ create_database()
 app.register_blueprint(funcionario_bp)
 app.register_blueprint(ferias_bp)
 app.register_blueprint(folga_bp)
+app.register_blueprint(gantt_bp)
 
 # Rota principal opcional — vamos REDIRECIONAR para o blueprint correto
 @app.route("/")
@@ -29,4 +31,5 @@ def home():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8000)
+    app.run(debug=True, use_reloader=False, host="0.0.0.0", port=8000)
+

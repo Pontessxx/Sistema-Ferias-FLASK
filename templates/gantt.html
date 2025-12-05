@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Gráfico Gantt - Férias dos Funcionários</h1>
+
+<div>
+    {{ grafico_html | safe }}
+</div>
+<h2>Feriados</h2>
+<table class="table-holidays">
+    {% for data, nome in feriados.items() %}
+    <tr>
+        <td>{{ data[3:5] }} / {{ data[0:2] }}</td>
+        <td>{{ nome }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+
+
+
+{% endblock %}

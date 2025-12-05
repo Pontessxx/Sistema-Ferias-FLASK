@@ -275,3 +275,16 @@ h2 {
         width: 100%;
     }
 }
+
+.table-holidays {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+.table-holidays td, .table-holidays th {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+}
+.table-holidays tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
