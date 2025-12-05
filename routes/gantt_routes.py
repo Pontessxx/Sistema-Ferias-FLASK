@@ -123,7 +123,13 @@ def pagina_gantt():
 
     grafico_html = fig.to_html(full_html=False)
 
-    feriados_ordenados = dict(sorted(feriados.items()))
+    feriados_ordenados = dict(
+        sorted(
+            feriados.items(),
+            key=lambda x: (int(x[0][5:7]), int(x[0][8:10]))
+        )
+    )
+
 
     return render_template("gantt.html",
                            grafico_html=grafico_html,
