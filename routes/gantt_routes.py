@@ -32,7 +32,6 @@ def obter_feriados():
     return all_feriados
 
 
-
 # ============================================================
 #   ROTA DO GANTT
 # ============================================================
@@ -63,7 +62,8 @@ def pagina_gantt():
         data = f["data_folga"]
 
         inicio = data
-        fim = (dt.datetime.strptime(data, "%Y-%m-%d") + dt.timedelta(days=1)).strftime("%Y-%m-%d")
+        fim = (dt.datetime.strptime(data, "%Y-%m-%d") +
+               dt.timedelta(days=1)).strftime("%Y-%m-%d")
 
         tasks.append(dict(
             Task=nome,
@@ -83,8 +83,8 @@ def pagina_gantt():
         showgrid_x=True,
         showgrid_y=True,
         height=650,
-          colors={
-            "Férias": "rgb(0, 102, 204)",   # azul forte
+        colors={
+            "Férias": "rgb(0, 102, 204)",   # azul
             "Folga": "rgb(255, 140, 0)"     # laranja
         }
     )
@@ -106,18 +106,42 @@ def pagina_gantt():
             "line": {"color": "red", "width": 2, "dash": "dot"}
         })
 
+    # ============================================================
+    #   DESTACAR SÁBADOS E DOMINGOS (FUNDO CINZA CLARO)
+    # ============================================================
+    ano_atual = dt.datetime.now().year
+    data_min = dt.datetime(ano_atual, 1, 1)
+    data_max = dt.datetime(ano_atual + 1, 12, 31)
+
+    dias = (data_max - data_min).days + 1
+
+    for i in range(dias):
+        dia = data_min + dt.timedelta(days=i)
+
+        if dia.weekday() in (5, 6):  # sábado/domingo
+            shapes.append({
+                "type": "rect",
+                "x0": dia,
+                "x1": dia + dt.timedelta(days=1),
+                "y0": -1,
+                "y1": len(tasks) + 1,
+                "fillcolor": "rgba(190,190,190,1)",  # cinza claro
+                "line_width": 0,
+                "layer": "below"
+            })
+
     fig['layout'].shapes = tuple(shapes)
 
     # ============================================================
     #   REMOVER TÍTULO AUTOMÁTICO
     # ============================================================
     fig.update_layout(
-        title=None,
-        margin=dict(t=20)
+        title="",
+        margin=dict(t=40)
     )
 
     # ============================================================
-    #   LEGENDA DOS FERIADOS (TRACE INVISÍVEL)
+    #   LEGENDA DOS FERIADOS
     # ============================================================
     fig.add_trace({
         "x": [None],
@@ -127,10 +151,24 @@ def pagina_gantt():
         "name": "Feriados"
     })
 
+    # ============================================================
+    #   LEGENDA DOS FINAIS DE SEMANA
+    # ============================================================
+    fig.add_trace({
+        "x": [None],
+        "y": [None],
+        "mode": "markers",
+        "marker": {
+            "size": 12,
+            "color": "rgba(190,190,190,1)"
+        },
+        "name": "Sábados e Domingos"
+    })
+
     grafico_html = fig.to_html(full_html=False)
 
     # ============================================================
-    #   FERIADOS PARA TABELA (sem duplicar anos)
+    #   FERIADOS PARA A TABELA (SEM DUPLICAR ANOS)
     # ============================================================
     feriados_sem_duplicados = {}
     for data, nome in feriados.items():
