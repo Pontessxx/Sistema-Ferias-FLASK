@@ -238,8 +238,21 @@ def pagina_gantt():
         },
         y="Funcionário"
     )
+    # Hover personalizado APENAS NO TEXTO, sem mexer na cor
+    hovertemplate = (
+        "<b>%{customdata[0]}</b><br>"  # Tipo
+        "Início: %{x|%b %d, %Y}<br>"
+        "Fim: %{x_end|%b %d, %Y}<br>"
+        "Funcionário: %{y}<br>"
+        "<extra></extra>"
+    )
 
-    fig.update_yaxes(autorange="reversed", tickfont=dict(size=18))
+    # Adiciona customdata a cada barra, mas NÃO altera hoverlabel
+    for i, trace in enumerate(fig.data):
+        tipo = trace.name  # "Férias" ou "Folga"
+        custom_data = [[tipo] for _ in trace.x]
+        fig.data[i].customdata = custom_data
+        fig.data[i].hovertemplate = hovertemplate
 
     shapes = []
 
@@ -255,6 +268,7 @@ def pagina_gantt():
             xref="x", yref="y"
         ))
 
+    fig.update_yaxes(autorange="reversed", tickfont=dict(size=18))
     # ---------------- FINAIS DE SEMANA ----------------
     ano = dt.datetime.now().year
     inicio = dt.datetime(ano, 1, 1)
@@ -297,13 +311,8 @@ def pagina_gantt():
         legend=dict(
             bgcolor=legend_bg,
             font=dict(color=text_color)
-        ),
-
-        hoverlabel=dict(
-            bgcolor=hover_bg,
-            font_size=14,
-            font_color=hover_text
         )
+        # <- nada de hoverlabel aqui
     )
 
     # ------- LEGENDA EXTRA (Feriado e Final de Semana) -------

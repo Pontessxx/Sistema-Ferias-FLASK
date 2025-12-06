@@ -75,8 +75,8 @@ body {
 }
 
 .content {
-    padding: 25px;
-    margin-top: 60px;
+    padding: 1.5625rem; /* 25px */
+    margin-top: 3.75rem; /* 60px */
     position: relative;
     z-index: 1;
 }
@@ -87,23 +87,23 @@ body {
 .topbar {
     background: var(--cor-topbar-fundo);
     color: var(--cor-topbar-texto);
-    padding: 12px 20px;
+    padding: 0.75rem 1.25rem; /* 12px 20px */
     display: flex;
     align-items: center;
-    font-size: 18px;
+    font-size: 1.125rem; /* 18px */
 
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 50px;
+    height: 3.125rem; /* 50px */
     z-index: 9999;
 }
 
 .hamburger {
-    font-size: 26px;
+    font-size: 1.625rem; /* 26px */
     cursor: pointer;
-    margin-right: 15px;
+    margin-right: 0.9375rem; /* 15px */
 }
 
 /* =========================================
@@ -118,14 +118,14 @@ body {
     background-color: var(--cor-menu-fundo);
     overflow-x: hidden;
     transition: 0.3s;
-    padding-top: 50px;
+    padding-top: 3.125rem; /* 50px */
     z-index: 10000;
 }
 
 .sidebar a {
-    padding: 12px 20px;
+    padding: 0.75rem 1.25rem; /* 12px 20px */
     text-decoration: none;
-    font-size: 18px;
+    font-size: 1.125rem; /* 18px */
     color: var(--cor-menu-texto);
     display: block;
     transition: 0.2s;
@@ -138,9 +138,9 @@ body {
 
 .close-btn {
     position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 30px;
+    top: 0.9375rem; /* 15px */
+    right: 1.25rem; /* 20px */
+    font-size: 1.875rem; /* 30px */
     cursor: pointer;
     color: var(--cor-topbar-texto);
 }
@@ -151,17 +151,17 @@ body {
 table {
     border-collapse: collapse;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 1.25rem; /* 20px */
 }
 
 table th {
     background: var(--cor-header-tabela);
-    padding: 10px;
+    padding: 0.625rem; /* 10px */
     border: 1px solid var(--cor-borda-tabela);
 }
 
 table td {
-    padding: 10px;
+    padding: 0.625rem; /* 10px */
     border: 1px solid var(--cor-borda-tabela);
 }
 
@@ -176,11 +176,11 @@ input[type="text"],
 input[type="number"],
 input[type="date"],
 select {
-    padding: 8px;
-    margin-bottom: 10px;
+    padding: 0.5rem; /* 8px */
+    margin-bottom: 0.625rem; /* 10px */
     border: 1px solid var(--cor-input-borda);
-    border-radius: 4px;
-    width: 250px;
+    border-radius: 0.25rem; /* 4px */
+    width: 15.625rem; /* 250px */
     background: var(--cor-input-fundo);
     color: var(--cor-input-texto);
 }
@@ -190,12 +190,12 @@ input::placeholder {
 }
 
 button {
-    padding: 8px 14px;
+    padding: 0.5rem 0.875rem; /* 8px 14px */
     background: var(--cor-botao);
     color: var(--cor-botao-texto);
     border: none;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 0.25rem; /* 4px */
     font-weight: bold;
 }
 
@@ -220,22 +220,22 @@ a.excluir:hover {
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
-    gap: 25px;
+    gap: 1.875rem 3.75rem; /* 30px 60px */
     flex-wrap: wrap;
     width: 100%;
-    padding: 10px 0;
+    padding: 0.625rem 0; /* 10px 0 */
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    min-width: 150px;
-    max-width: 200px;
+    min-width: 9.375rem; /* 150px */
+    max-width: 12.5rem; /* 200px */
 }
 
 .form-group label {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 0.3125rem; /* 5px */
 }
 
 /* =========================================
