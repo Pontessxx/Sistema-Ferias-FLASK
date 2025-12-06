@@ -1,0 +1,9 @@
+pyinstaller app.py ^
+  --name EscalaFerias ^
+  --onefile ^
+  --add-data "templates;templates" ^
+  --add-data "static;static" ^
+  --hidden-import routes ^
+  --hidden-import services ^
+  --collect-submodules holidays ^
+  --collect-data holidays

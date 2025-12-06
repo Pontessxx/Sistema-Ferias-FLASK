@@ -14,6 +14,7 @@ Este módulo é o ponto de entrada do sistema.
 
 from flask import Flask, render_template
 from database import create_database
+import logging
 
 # Importação das rotas (Blueprints)
 from routes.funcionario_routes import funcionario_bp
@@ -73,10 +74,16 @@ def home():
 # - host 0.0.0.0: permite acesso na rede local
 # - porta 8000: porta personalizada do sistema
 # ===============================================================
+# Desliga o logger padrão do werkzeug (essas linhas de GET/POST)
+logging.getLogger("werkzeug").disabled = True
 if __name__ == "__main__":
-    app.run(
-        debug=True,
-        use_reloader=False,
-        host="0.0.0.0",
-        port=8000
-    )
+
+
+
+    print("\n========================================")
+    print("  🚀 Sistema de Escala de Férias")
+    print("  ▶ Servidor rodando em: http://127.0.0.1:8000")
+    print("  ▶ Acesse /gantt para ver o gráfico")
+    print("  ▶ Pressione CTRL+C para encerrar")
+    print("========================================\n")
+    app.run(debug=False, host="0.0.0.0", port=8000)

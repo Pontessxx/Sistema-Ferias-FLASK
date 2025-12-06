@@ -25,7 +25,7 @@ Observação:
 import sqlite3
 
 # Nome do arquivo de banco SQLite
-DB_NAME = "escala.db"
+DB_NAME = r"C:\Users\Henrique\Downloads\escala.db"
 
 
 def create_database():
