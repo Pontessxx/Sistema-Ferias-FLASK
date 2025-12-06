@@ -1,22 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- ============================================================
+     TÍTULO DA PÁGINA
+     ============================================================ -->
 <h1>Folga Assiduidade</h1>
 
+<!-- ============================================================
+     FORMULÁRIO DE CADASTRO / EDIÇÃO DE FOLGA
+     - Permite registrar ou alterar a folga anual do funcionário
+     - Campos:
+         * Funcionário
+         * Ano da folga
+         * Data da folga
+     - Folga é única por funcionário por ano
+     ============================================================ -->
 <form action="/adicionar-folga" method="POST" id="formFolga" class="form-section">
 
+    <!-- Campo oculto para armazenar o ID em caso de edição -->
     <input type="hidden" id="folga_id" name="folga_id">
 
+    <!-- ===========================
+         SELEÇÃO DO FUNCIONÁRIO
+         =========================== -->
     <div class="form-group">
         <label>Funcionário:</label>
         <select name="funcionario_folga_id" id="funcionario_folga_id" required>
             <option value="">Selecione...</option>
+
+            <!-- Lista dinâmica preenchida pelo backend -->
             {% for f in funcionarios %}
                 <option value="{{ f[0] }}">{{ f[1] }}</option>
             {% endfor %}
         </select>
     </div>
 
+    <!-- ===========================
+         SELEÇÃO DO ANO DA FOLGA
+         anos recebidos do backend:
+         - ano_atual
+         - ano_proximo
+         =========================== -->
     <div class="form-group">
         <label>Ano da folga:</label>
         <select name="ano" id="ano" required>
@@ -25,20 +49,38 @@
         </select>
     </div>
 
+    <!-- ===========================
+         SELEÇÃO DA DATA DA FOLGA
+         =========================== -->
     <div class="form-group">
         <label>Data da folga:</label>
         <input type="date" name="data_folga" id="data_folga" required>
     </div>
 
+    <!-- ===========================
+         BOTÕES DO FORMULÁRIO
+         - Salvar (inserir ou atualizar)
+         - Excluir (mostrado apenas ao editar)
+         =========================== -->
     <div class="form-buttons">
         <button type="submit" id="btnFolga" class="btn">Salvar Folga</button>
-        <button type="button" id="btnExcluirFolga" class="btn-secondary" onclick="excluirFolga()" style="display:none;">Excluir Folga</button>
+
+        <!-- Botão de exclusão só aparece quando há folga selecionada -->
+        <button type="button" id="btnExcluirFolga" class="btn-secondary"
+                onclick="excluirFolga()" style="display:none;">
+            Excluir Folga
+        </button>
     </div>
 
 </form>
 
 <hr>
 
+<!-- ============================================================
+     LISTAGEM DE TODAS AS FOLGAS CADASTRADAS
+     - Mostra funcionário, ano, e data
+     - Permite excluir diretamente pela tabela
+     ============================================================ -->
 <h2>Folgas cadastradas</h2>
 
 <table class="table">
@@ -55,17 +97,22 @@
         <td>{{ f.ano }}</td>
         <td>{{ f.data_folga }}</td>
         <td>
+            <!-- Exclui diretamente via rota -->
             <a href="/deletar-folga/{{ f.id }}" class="excluir">Excluir</a>
         </td>
     </tr>
     {% endfor %}
 </table>
 
+<!-- ============================================================
+     SCRIPT PARA EXCLUSÃO DE FOLGA NO MODO EDIÇÃO
+     - Usado quando a folga é carregada para edição no formulário
+     ============================================================ -->
 <script>
 function excluirFolga() {
     const id = document.getElementById("folga_id").value;
-    if (!id) return alert("Nenhuma folga selecionada.");
-    window.location.href = `/deletar-folga/${id}`;
+    if (!id) return alert("Nenhuma folga selecionada."); // segurança
+    window.location.href = `/deletar-folga/${id}`; // redireciona para deletar
 }
 </script>
 

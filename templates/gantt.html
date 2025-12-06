@@ -1,23 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- ============================================================
+     TÍTULO PRINCIPAL DA PÁGINA
+     ============================================================ -->
 <h1>Gráfico Gantt - Férias dos Funcionários</h1>
 
+<!-- ============================================================
+     ÁREA DO GRÁFICO
+     - O conteúdo HTML do gráfico é gerado no backend (Plotly)
+     - É inserido aqui via variável grafico_html
+     - O filtro |safe é necessário para permitir que o HTML seja renderizado
+     ============================================================ -->
 <div>
     {{ grafico_html | safe }}
 </div>
+
+<!-- ============================================================
+     LISTA DE FERIADOS ORDENADOS
+     - A tabela exibe feriados filtrados pelo ano selecionado
+     - 'feriados' é um dicionário enviado pelo backend:
+           chave -> 'YYYY-MM-DD'
+           valor -> nome do feriado
+     - A data é exibida no formato dd / mm
+     ============================================================ -->
 <h2>Feriados</h2>
+
 <table class="table-holidays">
     {% for data, nome in feriados.items() %}
     <tr>
+        <!-- Exibe a data no formato "DD / MM" -->
         <td>{{ data[8:] }} / {{ data[5:7] }}</td>
+
+        <!-- Nome do feriado -->
         <td>{{ nome }}</td>
     </tr>
     {% endfor %}
-
 </table>
-
-
-
 
 {% endblock %}

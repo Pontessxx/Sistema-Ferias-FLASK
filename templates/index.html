@@ -1,15 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- =============================================================
+     TÍTULO PRINCIPAL DA PÁGINA
+     ============================================================= -->
 <h1>Cadastro de Férias</h1>
 
+<!-- =============================================================
+     FORMULÁRIO DE CADASTRO / ATUALIZAÇÃO DE FÉRIAS
+     - Este formulário permite adicionar um novo registro ou atualizar
+       um registro existente quando carregado pela função carregarFerias().
+     - O campo oculto ID decide se é criação ou edição.
+     ============================================================= -->
 <form action="/adicionar-ferias" method="POST" class="form-section" id="formFerias">
 
+    <!-- ID oculto usado para edição -->
     <input type="hidden" id="ferias_id" name="ferias_id">
 
+    <!-- ============================
+         CAMPO: Funcionário
+         - Lista vem do backend
+         - data-saldo contém saldo de férias calculado via Python
+         ============================ -->
     <div class="form-group">
         <label>Funcionário:</label>
-        <select name="funcionario_id" id="funcionario_id" required  onchange="atualizarSaldo()">
+        <select name="funcionario_id" id="funcionario_id" required onchange="atualizarSaldo()">
             <option value="">Selecione...</option>
             {% for f in funcionarios %}
                 <option value="{{ f[0] }}" data-saldo="{{ f[2] }}">{{ f[1] }}</option>
@@ -17,11 +32,15 @@
         </select>
     </div>
 
+    <!-- Mostra o saldo de férias conforme usuário seleciona funcionário -->
     <div class="form-group">
         <label id="label_saldo">Saldo de férias:</label>
         <span id="span_saldo">selecione um funcionário</span>
     </div>
 
+    <!-- ============================
+         CAMPO: Agendado no SAP
+         ============================ -->
     <div class="form-group">
         <label>Agendado SAP:</label>
         <select name="agendado_sap" id="agendado_sap">
@@ -30,6 +49,9 @@
         </select>
     </div>
 
+    <!-- ============================
+         CAMPO: Abono pecuniário
+         ============================ -->
     <div class="form-group">
         <label>Abono Pecuniário:</label>
         <select name="abono_peculiario" id="abono_peculiario">
@@ -38,16 +60,23 @@
         </select>
     </div>
 
+    <!-- ============================
+         CAMPO: Data de início
+         ============================ -->
     <div class="form-group">
         <label>Data de início:</label>
         <input type="date" name="inicio" id="inicio" required>
     </div>
 
+    <!-- ============================
+         CAMPO: Data de término
+         ============================ -->
     <div class="form-group">
         <label>Data de término:</label>
         <input type="date" name="fim" id="fim" required>
     </div>
 
+    <!-- BOTÕES DO FORMULÁRIO -->
     <div class="form-buttons">
         <button type="submit" id="btnSubmit" class="btn">Salvar</button>
         <button type="button" class="btn-secondary" onclick="limparFormulario()">Limpar</button>
@@ -55,14 +84,18 @@
 
 </form>
 
+<!-- =============================================================
+     LISTA DE FÉRIAS EXISTENTES
+     ============================================================= -->
 <h2>Férias cadastradas</h2>
 
-<!-- ========================================= -->
-<!--                FILTROS                    -->
-<!-- ========================================= -->
-
+<!-- =============================================================
+     FILTROS (FUNCIONAM SEM RECARREGAR A PÁGINA)
+     Cada filtro dispara applyFilters() → busca JSON da API → atualiza tabela
+     ============================================================= -->
 <div class="filters">
 
+    <!-- Filtro: funcionário -->
     <select id="filtro_funcionario">
         <option value="">Todos funcionários</option>
         {% for f in funcionarios %}
@@ -70,12 +103,14 @@
         {% endfor %}
     </select>
 
+    <!-- Filtro: ano -->
     <select id="filtro_ano">
         <option value="">Todos anos</option>
         <option value="{{ ano_atual }}">{{ ano_atual }}</option>
         <option value="{{ ano_proximo }}">{{ ano_proximo }}</option>
     </select>
 
+    <!-- Filtro: mês -->
     <select id="filtro_mes">
         <option value="">Todos meses</option>
         <option value="1">Janeiro</option>
@@ -92,12 +127,14 @@
         <option value="12">Dezembro</option>
     </select>
 
+    <!-- Filtro: abono -->
     <select id="filtro_abono">
         <option value="">Abono (todos)</option>
         <option value="sim">Com abono</option>
         <option value="não">Sem abono</option>
     </select>
 
+    <!-- Filtro: SAP -->
     <select id="filtro_sap">
         <option value="">SAP (todos)</option>
         <option value="sim">Sim</option>
@@ -107,6 +144,12 @@
 </div>
 
 
+<!-- =============================================================
+     TABELA DE FÉRIAS
+     - O clique em cada linha executa carregarFerias(), que
+       preenche o formulário para edição.
+     - f é uma tupla enviada pelo backend com muitos dados.
+     ============================================================= -->
 <table class="table">
     <thead>
         <tr>
@@ -128,6 +171,7 @@
             '{{ f[0] }}','{{ f[1] }}','{{ f[3] }}','{{ f[4] }}','{{ f[5] }}',
             '{{ f[10] }}','{{ f[11] }}','{{ f[12] }}','{{ f[13] }}'
         )">
+
         <td>{{ f[2] }}</td>
         <td>{{ f[3] }}</td>
         <td>{{ f[4] }} dias</td>
@@ -142,13 +186,17 @@
 </table>
 
 <script>
-// ===============================
-// CARREGAR DADOS PARA FORMULÁRIO
-// ===============================
+/* =============================================================
+   CARREGA UM REGISTRO EXISTENTE DE FÉRIAS NO FORMULÁRIO
+   - Usado quando usuário clica em uma linha da tabela
+   - Preenche todos os campos e troca ação do formulário
+   ============================================================= */
 function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, folgaAntISO, folgaAnoISO) {
 
     document.getElementById("ferias_id").value = id;
     document.getElementById("funcionario_id").value = funcionarioId;
+
+    // Atualiza saldo de férias do funcionário
     fetch(`/saldo/${funcionarioId}`)
         .then(res => res.json())
         .then(data => {
@@ -156,17 +204,21 @@ function carregarFerias(id, funcionarioId, sap, dias, abono, inicioISO, fimISO, 
                 data.saldo + " dias restantes";
         });
 
-
+    // Preenche os campos
     document.getElementById("agendado_sap").value = sap;
     document.getElementById("abono_peculiario").value = abono;
 
     document.getElementById("inicio").value = inicioISO;
     document.getElementById("fim").value = fimISO;
 
+    // Troca para modo atualização
     document.getElementById("formFerias").action = "/atualizar-ferias/" + id;
     document.getElementById("btnSubmit").innerText = "Atualizar Férias";
 }
 
+/* =============================================================
+   ATUALIZA SALDO QUANDO SELECIONA FUNCIONÁRIO
+   ============================================================= */
 function atualizarSaldo() {
     let id = document.getElementById("funcionario_id").value;
     if (!id) return;
@@ -179,9 +231,9 @@ function atualizarSaldo() {
         });
 }
 
-// ===============================
-// LIMPAR FORMULÁRIO
-// ===============================
+/* =============================================================
+   LIMPAR FORMULÁRIO (VOLTA PARA MODO "ADICIONAR")
+   ============================================================= */
 function limparFormulario() {
     document.getElementById("ferias_id").value = "";
     document.getElementById("formFerias").action = "/adicionar-ferias";
@@ -196,9 +248,9 @@ function limparFormulario() {
     document.getElementById("btnSubmit").innerText = "Salvar";
 }
 
-// ===============================
-// FILTROS — busca dinâmica
-// ===============================
+/* =============================================================
+   FILTROS DINÂMICOS — atualização sem reload
+   ============================================================= */
 function aplicarFiltros() {
     let funcionario = document.getElementById("filtro_funcionario").value;
     let ano = document.getElementById("filtro_ano").value;
@@ -215,9 +267,9 @@ function aplicarFiltros() {
     .then(lista => atualizarTabela(lista));
 }
 
-// ===============================
-// ATUALIZAR TABELA
-// ===============================
+/* =============================================================
+   ATUALIZA TABELA SEM RECARREGAR PÁGINA
+   ============================================================= */
 function atualizarTabela(lista) {
     let tbody = document.querySelector(".table tbody");
     tbody.innerHTML = "";
@@ -238,7 +290,9 @@ function atualizarTabela(lista) {
     });
 }
 
-// Ativar filtros
+/* =============================================================
+   EVENTOS: DISPARA FILTROS EM TEMPO REAL
+   ============================================================= */
 document.getElementById("filtro_funcionario").addEventListener("change", aplicarFiltros);
 document.getElementById("filtro_ano").addEventListener("change", aplicarFiltros);
 document.getElementById("filtro_mes").addEventListener("change", aplicarFiltros);

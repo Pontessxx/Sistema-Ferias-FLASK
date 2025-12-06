@@ -1,13 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- ============================================================
+     TÍTULO DA PÁGINA
+     ============================================================ -->
 <h1>Funcionários</h1>
 
+<!-- ============================================================
+     FORMULÁRIO DE CADASTRO DE FUNCIONÁRIO
+     - Permite adicionar um novo funcionário ao sistema.
+     - Campos:
+         * Nome do funcionário
+     - Envia para a rota /adicionar-funcionario via POST
+     ============================================================ -->
 <form action="/adicionar-funcionario" method="POST">
     <input type="text" name="nome" placeholder="Nome do funcionário" required>
     <button type="submit">Adicionar</button>
 </form>
 
+<!-- ============================================================
+     TABELA DE FUNCIONÁRIOS CADASTRADOS
+     - Renderiza dados enviados pelo backend (variável funcionarios)
+     - Cada item do loop contém:
+         f[0] → ID
+         f[1] → Nome
+     ============================================================ -->
 <table border="1" cellpadding="8" width="500">
     <tr>
         <th>ID</th>
@@ -15,12 +32,24 @@
         <th>Ações</th>
     </tr>
 
+    <!-- Loop Jinja2 para listar todos os funcionários -->
     {% for f in funcionarios %}
     <tr>
+        <!-- ID do funcionário -->
         <td>{{ f[0] }}</td>
+
+        <!-- Nome do funcionário -->
         <td>{{ f[1] }}</td>
+
+        <!-- Ação: Excluir -->
+        <!-- Observação:
+             A exclusão é feita diretamente via URL,
+             seguindo o ID específico do funcionário.
+        -->
         <td>
-            <a href="/deletar-funcionario/{{ f[0] }}" style="color:red;">Excluir</a>
+            <a href="/deletar-funcionario/{{ f[0] }}" style="color:red;">
+                Excluir
+            </a>
         </td>
     </tr>
     {% endfor %}

@@ -1,3 +1,19 @@
+"""
+gantt_routes.py
+----------------
+Módulo responsável pela geração da visualização do gráfico Gantt contendo:
+
+- Períodos de férias
+- Folgas por assiduidade
+- Feriados nacionais, estaduais e municipais
+- Realce de finais de semana
+- Suporte a tema claro e escuro
+- Sistema de filtros por funcionário, mês e ano
+
+Este módulo utiliza Plotly para renderização do gráfico e integra dados vindos dos
+serviços `ferias_service.py` e `folga_service.py`.
+"""
+
 from flask import Blueprint, render_template, request
 from services.ferias_service import listar_periodos_para_gantt
 from services.folga_service import listar_folgas
@@ -9,14 +25,32 @@ import holidays
 gantt_bp = Blueprint("gantt", __name__)
 
 
-# ================================================================
-#  FUNÇÃO PARA OBTER FERIADOS
-# ================================================================
+# ============================================================================
+# FUNÇÃO PARA OBTER LISTA COMPLETA DE FERIADOS
+# ============================================================================
 def obter_feriados():
+    """
+    Retorna um dicionário contendo todos os feriados relevantes para o gráfico.
+
+    Inclui:
+    - Feriados nacionais e estaduais usando a biblioteca `holidays`.
+    - Feriados municipais fixos (ex.: Aniversário de Osasco).
+    - Feriados móveis: Carnaval, Corpus Christi, e outros suportados pela lib.
+
+    Formato do retorno:
+        {
+            "YYYY-MM-DD": "Nome do feriado",
+            ...
+        }
+
+    Returns:
+        dict: chave = data no formato YYYY-MM-DD, valor = nome do feriado
+    """
 
     ano_atual = dt.datetime.now().year
     ano_prox = ano_atual + 1
 
+    # Feriados nacionais + estaduais
     feriados = holidays.Brazil(
         years=[ano_atual, ano_prox],
         state="SP",
@@ -25,11 +59,11 @@ def obter_feriados():
 
     resultado = {}
 
-    # MUNICIPAL
+    # ---------------- FERIADO MUNICIPAL ----------------
     resultado[f"{ano_atual}-02-19"] = "Aniversário de Osasco"
     resultado[f"{ano_prox}-02-19"] = "Aniversário de Osasco"
 
-    # MÓVEIS
+    # ---------------- FERIADOS MÓVEIS ----------------
     for ano in [ano_atual, ano_prox]:
         # Carnaval
         try:
@@ -47,10 +81,10 @@ def obter_feriados():
         except:
             pass
 
-        # Santo Antônio
+        # Santo Antônio (fixo)
         resultado[f"{ano}-06-13"] = "Santo Antônio"
 
-    # NORMAIS
+    # ---------------- FERIADOS PADRÃO ----------------
     for data, nome in feriados.items():
         if isinstance(data, dt.date):
             resultado[data.strftime("%Y-%m-%d")] = nome
@@ -58,16 +92,36 @@ def obter_feriados():
     return resultado
 
 
-# ================================================================
-#  ROTA DO GRÁFICO GANTT
-# ================================================================
+# ============================================================================
+# ROTA DO GRÁFICO GANTT
+# ============================================================================
 @gantt_bp.route("/gantt")
 def pagina_gantt():
+    """
+    Gera e exibe o gráfico de Gantt com todos os períodos de férias, folgas,
+    feriados e finais de semana.
 
-    # ---------------- DETECTA O TEMA ----------------
+    Funcionalidades suportadas:
+    - Tema claro/escuro (parâmetro GET: theme=dark)
+    - Filtros:
+        funcionário
+        mês
+        ano
+    - Feriados marcados com linha vermelha
+    - Finais de semana sombreado automaticamente
+    - Legendas personalizadas
+
+    Renderiza o template `gantt.html` contendo:
+    - O gráfico gerado como HTML
+    - Lista de feriados ordenados
+    - Lista de funcionários únicos para o filtro
+    """
+
+    # =====================================================
+    # DETECTAR TEMA (LIGHT / DARK)
+    # =====================================================
     theme = request.args.get("theme", "light")
 
-    # Paleta dinâmica
     if theme == "dark":
         paper_bg = "#121212"
         plot_bg = "#1a1a1a"
@@ -87,35 +141,40 @@ def pagina_gantt():
         hover_bg = "#eee"
         hover_text = "black"
 
-    # ---------------- FILTROS ----------------
+    # =====================================================
+    # CAPTURA DOS FILTROS RECEBIDOS VIA GET
+    # =====================================================
     funcionario_filtro = request.args.get("funcionario")
     mes_filtro = request.args.get("mes")
     ano_filtro = request.args.get("ano")
 
-    dados = listar_periodos_para_gantt()
-    folgas = listar_folgas()
-    feriados = obter_feriados()
+    # Dados vindos do banco
+    dados = listar_periodos_para_gantt()   # férias
+    folgas = listar_folgas()               # folgas
+    feriados = obter_feriados()            # feriados
 
-    # função de filtro geral
+    # Função auxiliar para validar filtros
     def dentro_do_filtro(inicio, fim):
         dt_inicio = dt.datetime.strptime(inicio, "%Y-%m-%d")
         dt_fim = dt.datetime.strptime(fim, "%Y-%m-%d")
 
+        # Filtro por ano
         if ano_filtro and dt_inicio.year != int(ano_filtro) and dt_fim.year != int(ano_filtro):
             return False
 
+        # Filtro por mês
         if mes_filtro and dt_inicio.month != int(mes_filtro) and dt_fim.month != int(mes_filtro):
             return False
 
         return True
 
-    # ---- Férias ----
+    # ---------------- FILTRAR FÉRIAS ----------------
     if funcionario_filtro:
         dados = [d for d in dados if d[0] == funcionario_filtro]
 
     dados = [d for d in dados if dentro_do_filtro(d[1], d[2])]
 
-    # ---- Folgas ----
+    # ---------------- FILTRAR FOLGAS ----------------
     if funcionario_filtro:
         folgas = [f for f in folgas if f["nome"] == funcionario_filtro]
 
@@ -124,10 +183,12 @@ def pagina_gantt():
         if dentro_do_filtro(f["data_folga"], f["data_folga"])
     ]
 
-    # ---------------- LISTA DE FUNCIONÁRIOS PARA O SELECT ----------------
+    # ---------------- LISTA ÚNICA DE FUNCIONÁRIOS ----------------
     funcionarios_unicos = sorted({d[0] for d in listar_periodos_para_gantt()})
 
-    # ---------------- GERAÇÃO DO GRAFICO ----------------
+    # =====================================================
+    # GERAR LISTA DE TAREFAS (FÉRIAS + FOLGAS)
+    # =====================================================
     tasks = []
 
     # Férias
@@ -143,6 +204,7 @@ def pagina_gantt():
     for f in folgas:
         nome = f["nome"]
         d = f["data_folga"]
+
         dt_inicio = dt.datetime.strptime(d, "%Y-%m-%d")
         dt_fim = dt_inicio + dt.timedelta(days=1)
 
@@ -153,6 +215,7 @@ def pagina_gantt():
             "Tipo": "Folga"
         })
 
+    # Caso não existam resultados com os filtros aplicados
     if not tasks:
         return render_template(
             "gantt.html",
@@ -161,6 +224,9 @@ def pagina_gantt():
             funcionarios=funcionarios_unicos
         )
 
+    # =====================================================
+    # GERAÇÃO DO GRÁFICO COM PLOTLY
+    # =====================================================
     fig = px.timeline(
         tasks,
         x_start="Inicio",
@@ -177,7 +243,7 @@ def pagina_gantt():
 
     shapes = []
 
-    # Feriados → linha vermelha
+    # ---------------- FERIADOS (LINHAS VERMELHAS) ----------------
     for data, nome in feriados.items():
         dt_data = dt.datetime.strptime(data, "%Y-%m-%d")
 
@@ -189,14 +255,14 @@ def pagina_gantt():
             xref="x", yref="y"
         ))
 
-    # Finais de semana (dinâmico)
+    # ---------------- FINAIS DE SEMANA ----------------
     ano = dt.datetime.now().year
     inicio = dt.datetime(ano, 1, 1)
     fim = dt.datetime(ano + 1, 12, 31)
 
     for i in range((fim - inicio).days):
         dia = inicio + dt.timedelta(days=i)
-        if dia.weekday() in (5, 6):
+        if dia.weekday() in (5, 6):  # sábado ou domingo
             shapes.append(dict(
                 type="rect",
                 x0=dia, x1=dia + dt.timedelta(days=1),
@@ -206,7 +272,9 @@ def pagina_gantt():
                 layer="below"
             ))
 
-    # ----------- LAYOUT COM THEME DINÂMICO ------------
+    # =====================================================
+    # LAYOUT E ESTILO (Tema Dinâmico)
+    # =====================================================
     fig.update_layout(
         shapes=shapes,
         paper_bgcolor=paper_bg,
@@ -238,7 +306,7 @@ def pagina_gantt():
         )
     )
 
-    # ------- LEGENDA EXTRA --------
+    # ------- LEGENDA EXTRA (Feriado e Final de Semana) -------
     fig.add_trace(go.Scatter(
         x=[None], y=[None], mode="lines",
         line=dict(color="red", width=2, dash="dot"),
@@ -253,7 +321,9 @@ def pagina_gantt():
 
     grafico_html = fig.to_html(full_html=False)
 
-    # ------- FERIADOS ORDENADOS --------
+    # =====================================================
+    # FERIADOS ORDENADOS PARA APRESENTAÇÃO NA TELA
+    # =====================================================
     ano_lista = ano_filtro if ano_filtro else dt.datetime.now().year
 
     feriados_filtrados = {
