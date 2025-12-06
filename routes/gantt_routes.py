@@ -120,7 +120,7 @@ def pagina_gantt():
     # =====================================================
     # DETECTAR TEMA (LIGHT / DARK)
     # =====================================================
-    theme = request.args.get("theme", "light")
+    theme = request.cookies.get("theme", "light")
 
     if theme == "dark":
         paper_bg = "#121212"

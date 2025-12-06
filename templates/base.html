@@ -3,134 +3,103 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- ============================================================
-         TÍTULO DA PÁGINA
-         - Pode ser substituído dinamicamente via contexto Jinja
-         ============================================================ -->
     <title>{{ title or "Sistema de Escala - férias" }}</title>
 
-    <!-- ============================================================
-         IMPORTAÇÃO DO CSS GLOBAL
-         ============================================================ -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
 </head>
 <body>
 
-    <!-- ============================================================
-         BARRA SUPERIOR (TOPO DO SISTEMA)
-         - Contém:
-           * botão hamburguer → abre menu lateral
-           * título do sistema
-           * botão para alternar entre tema claro/escuro
-         ============================================================ -->
+    <!-- TOPO -->
     <div class="topbar">
-        <!-- Ícone de menu lateral (abre sidebar) -->
         <span class="hamburger" onclick="openMenu()">&#9776;</span>
 
-        <!-- Nome do sistema -->
         Sistema de Escala - férias
 
-        <!-- Botão de alternância de tema -->
         <button id="btnTema" onclick="toggleTema()" 
                 style="background:none; border:1px solid #fff; padding:6px 10px; border-radius:6px; color:white; cursor:pointer;">
-            🌙 <!-- Ícone inicial, alterado via JavaScript -->
+            🌙
         </button>
     </div>
 
-    <!-- ============================================================
-         MENU LATERAL (SIDEBAR)
-         - Navegação geral do sistema
-         - Pode ser aberto/fechado via funções openMenu() / closeMenu()
-         ============================================================ -->
+    <!-- MENU LATERAL -->
     <div id="sidebar" class="sidebar">
         <span class="close-btn" onclick="closeMenu()">&times;</span>
 
-        <!-- Links de navegação -->
         <a href="/"> Início</a>
         <a href="/funcionarios"> Funcionários</a>
         <a href="/abono-folga"> Abono e Folga</a>
         <a href="/gantt"> Gráfico Anual</a>
     </div>
 
-    <!-- ============================================================
-         ÁREA PRINCIPAL DO CONTEÚDO
-         - As páginas específicas irão preencher este bloco
-         ============================================================ -->
+    <!-- CONTEÚDO -->
     <div class="content">
         {% block content %}{% endblock %}
     </div>
 
-    <!-- ============================================================
-         SCRIPT DO MENU E DO SISTEMA DE TEMA
-         ============================================================ -->
+    <!-- SCRIPT CENTRAL -->
     <script>
 
-        /* ------------------------------------------------------------
-           ABRIR SIDEBAR (MENU LATERAL)
-        ------------------------------------------------------------ */
+        /* -------------------------
+           MENU LATERAL
+        ------------------------- */
         function openMenu() {
             document.getElementById("sidebar").style.width = "260px";
         }
 
-        /* ------------------------------------------------------------
-           FECHAR SIDEBAR (MENU LATERAL)
-        ------------------------------------------------------------ */
         function closeMenu() {
             document.getElementById("sidebar").style.width = "0";
         }
 
-        /* ------------------------------------------------------------
-           AO CARREGAR A PÁGINA:
-           - Recupera tema salvo no localStorage
-           - Ajusta interface para o tema escolhido anteriormente
-        ------------------------------------------------------------ */
-        document.addEventListener("DOMContentLoaded", () => {
-            const temaSalvo = localStorage.getItem("tema") || "light";
-            document.documentElement.setAttribute("data-theme", temaSalvo);
-            atualizarBotao(temaSalvo);
-        });
-
-        /* ------------------------------------------------------------
-           ALTERAR TEMA (LIGHT <→> DARK)
-           - Atualiza atributo data-theme no HTML
-           - Salva escolha no localStorage
-           - Atualiza ícone do botão
-           - Se estiver no Gantt → recarrega gráfico já com novo tema
-        ------------------------------------------------------------ */
-        function toggleTema() {
-            const atual = document.documentElement.getAttribute("data-theme") || "light";
-            const novoTema = atual === "light" ? "dark" : "light";
-
-            // Aplica visualmente
-            document.documentElement.setAttribute("data-theme", novoTema);
-
-            // Salva para uso futuro
-            localStorage.setItem("tema", novoTema);
-
-            atualizarBotao(novoTema);
-
-            // Atualização especial:
-            // O Gantt precisa de recarregamento para redesenhar com novo tema
-            if (window.location.pathname === "/gantt") {
-                const url = new URL(window.location.href);
-                url.searchParams.set("theme", novoTema);
-                window.location.href = url.toString();
-            }
+        /* -------------------------
+           COOKIES
+        ------------------------- */
+        function obterCookie(nome) {
+            const valor = document.cookie.split("; ").find(l => l.startsWith(nome + "="));
+            return valor ? valor.split("=")[1] : null;
         }
 
-        /* ------------------------------------------------------------
-           Atualiza ícone conforme o tema:
-           - Tema claro → ícone de lua 🌙
-           - Tema escuro → ícone de sol ☀️
-        ------------------------------------------------------------ */
+        /* -------------------------
+           DEFINIR BOTÃO DO TEMA
+        ------------------------- */
         function atualizarBotao(tema) {
             const btn = document.getElementById("btnTema");
             btn.textContent = tema === "dark" ? "☀️" : "🌙";
         }
-    </script>
 
-    <!-- Plotly opcional (já embutido no gráfico quando necessário) -->
-    <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
+        /* -------------------------
+           TROCAR TEMA
+        ------------------------- */
+        function toggleTema() {
+            const atual = document.documentElement.getAttribute("data-theme") || "light";
+            const novoTema = atual === "light" ? "dark" : "light";
+
+            // Aplica tema visualmente
+            document.documentElement.setAttribute("data-theme", novoTema);
+
+            // salva cookie (1 ano)
+            document.cookie = `theme=${novoTema}; path=/; max-age=31536000`;
+
+            atualizarBotao(novoTema);
+
+            // 🔥 SE ESTIVER NA PÁGINA DO GANTT, RECARREGA PARA ATUALIZAR O GRÁFICO
+            if (window.location.pathname === "/gantt") {
+                window.location.reload();
+            }
+        }
+
+
+        /* -------------------------
+           APLICAR TEMA AO CARREGAR
+        ------------------------- */
+        document.addEventListener("DOMContentLoaded", () => {
+            const temaCookie = obterCookie("theme");
+            const tema = temaCookie || "light";
+
+            document.documentElement.setAttribute("data-theme", tema);
+            atualizarBotao(tema);
+        });
+
+    </script>
 
 </body>
 </html>
