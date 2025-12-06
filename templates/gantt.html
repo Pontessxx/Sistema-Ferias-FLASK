@@ -1,38 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- ============================================================
-     TÍTULO PRINCIPAL DA PÁGINA
-     ============================================================ -->
 <h1>Gráfico Gantt - Férias dos Funcionários</h1>
 
 <!-- ============================================================
-     ÁREA DO GRÁFICO
-     - O conteúdo HTML do gráfico é gerado no backend (Plotly)
-     - É inserido aqui via variável grafico_html
-     - O filtro |safe é necessário para permitir que o HTML seja renderizado
-     ============================================================ -->
+     FILTRO DE ANO
+     - Opção vazia = ano atual + próximo
+     - Se escolher um ano, mostra só aquele ano
+   ============================================================ -->
+<form method="get" class="form-section" style="margin-bottom: 1rem;">
+    <div class="form-group">
+        <label for="ano">Ano:</label>
+        <select name="ano" id="ano" onchange="this.form.submit()">
+            <option value="">
+                Ano atual + próximo
+            </option>
+            {% for a in anos %}
+                <option value="{{ a }}"
+                    {% if ano_selecionado and ano_selecionado|int == a %}selected{% endif %}>
+                    {{ a }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+<!-- ============================================================
+     GRÁFICO
+   ============================================================ -->
 <div>
     {{ grafico_html | safe }}
 </div>
 
 <!-- ============================================================
-     LISTA DE FERIADOS ORDENADOS
-     - A tabela exibe feriados filtrados pelo ano selecionado
-     - 'feriados' é um dicionário enviado pelo backend:
-           chave -> 'YYYY-MM-DD'
-           valor -> nome do feriado
-     - A data é exibida no formato dd / mm
-     ============================================================ -->
+     LISTA DE FERIADOS
+   ============================================================ -->
 <h2>Feriados</h2>
 
 <table class="table-holidays">
     {% for data, nome in feriados.items() %}
     <tr>
-        <!-- Exibe a data no formato "DD / MM" -->
         <td>{{ data[8:] }} / {{ data[5:7] }}</td>
-
-        <!-- Nome do feriado -->
         <td>{{ nome }}</td>
     </tr>
     {% endfor %}
