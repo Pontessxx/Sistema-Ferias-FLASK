@@ -8,27 +8,57 @@ import holidays
 
 gantt_bp = Blueprint("gantt", __name__)
 
-
 def obter_feriados():
+
     ano_atual = dt.datetime.now().year
     ano_prox = ano_atual + 1
 
+    # feriados nacionais + estaduais SP
     feriados = holidays.Brazil(
         years=[ano_atual, ano_prox],
         state="SP",
         language="pt_BR"
     )
 
-    feriados[dt.date(ano_atual, 2, 19)] = "Aniversário de Osasco"
-    feriados[dt.date(ano_prox, 2, 19)] = "Aniversário de Osasco"
-
     resultado = {}
 
+    # ======== ADICIONAR FERIADOS MUNICIPAIS DE OSASCO ========
+    resultado[f"{ano_atual}-02-19"] = "Aniversário de Osasco"
+    resultado[f"{ano_prox}-02-19"] = "Aniversário de Osasco"
+
+    # ======== ADICIONAR FERIADOS MÓVEIS QUE A LIBRARY NÃO TRAZ ========
+    for ano in [ano_atual, ano_prox]:
+        # === Carnaval (terça-feira) ===
+        for nome_variacao in ["Carnaval", "Carnaval (ponto facultativo)"]:
+            try:
+                datas = holidays.Brazil(years=[ano]).get_named(nome_variacao)
+                if datas:
+                    resultado[datas[0].strftime("%Y-%m-%d")] = "Carnaval"
+                    break
+            except:
+                pass
+
+        # === Corpus Christi ===
+        for nome_variacao in ["Corpus Christi", "Corpus-Christi"]:
+            try:
+                datas = holidays.Brazil(years=[ano]).get_named(nome_variacao)
+                if datas:
+                    resultado[datas[0].strftime("%Y-%m-%d")] = "Corpus Christi"
+                    break
+            except:
+                pass
+
+
+        # Santo Antônio (municipal)
+        resultado[f"{ano}-06-13"] = "Santo Antônio"
+
+    # ======== ADICIONAR OS FERIADOS DA LIBRARIES =========
     for data, nome in feriados.items():
         if isinstance(data, dt.date):
             resultado[data.strftime("%Y-%m-%d")] = nome
 
     return resultado
+
 
 
 @gantt_bp.route("/gantt")
@@ -80,7 +110,7 @@ def pagina_gantt():
         y="Funcionário",
     )
 
-    fig.update_yaxes(autorange="reversed")
+    fig.update_yaxes(autorange="reversed", tickfont=dict(size=18))
     # fig.update_yaxes(title=None)
 
     # SHAPES dos feriados
@@ -116,19 +146,52 @@ def pagina_gantt():
                 "y0": -0.5,
                 "y1": len(tasks) - 0.5,
                 "fillcolor": "rgba(200,200,200,0.5)",
-                "line": {"width": 0}
+                "line": {"width": 0},
+                "layer": "below", # colocar atrás das barras
             })
+    fig.update_layout(
+        shapes=shapes,
+        paper_bgcolor="white",
+        plot_bgcolor="white"
+    )
+    # === LEGENDA: FERIADOS ===
+    fig.add_trace(go.Scatter(
+        x=[None],
+        y=[None],
+        mode="lines",
+        line=dict(color="red", width=2, dash="dot"),
+        name="Feriados"
+    ))
 
-    fig.update_layout(shapes=shapes)
+    # === LEGENDA: SÁBADOS E DOMINGOS ===
+    fig.add_trace(go.Scatter(
+        x=[None],
+        y=[None],
+        mode="markers",
+        marker=dict(size=15, color="rgba(200,200,200,0.6)"),
+        name="Sábados e Domingos"
+    ))
+
 
     grafico_html = fig.to_html(full_html=False)
 
+    ano_atual = dt.datetime.now().year
+    ano_prox = ano_atual + 1
+    # Filtra somente feriados do ano atual
+    feriados_filtrados = {
+        data: nome
+        for data, nome in feriados.items()
+        if data.startswith(str(ano_prox))
+    }
+
+    # Ordena por mês e dia
     feriados_ordenados = dict(
         sorted(
-            feriados.items(),
+            feriados_filtrados.items(),
             key=lambda x: (int(x[0][5:7]), int(x[0][8:10]))
         )
     )
+
 
 
     return render_template("gantt.html",
