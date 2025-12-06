@@ -11,6 +11,10 @@
     <div class="topbar">
         <span class="hamburger" onclick="openMenu()">&#9776;</span>
         Sistema de Escala - férias
+        <button id="btnTema" onclick="toggleTema()" 
+                style="background:none; border:1px solid #fff; padding:6px 10px; border-radius:6px; color:white; cursor:pointer;">
+            🌙
+        </button>
     </div>
 
     <!-- MENU LATERAL -->
@@ -33,6 +37,32 @@
         }
         function closeMenu() {
             document.getElementById("sidebar").style.width = "0";
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const temaSalvo = localStorage.getItem("tema") || "light";
+            document.documentElement.setAttribute("data-theme", temaSalvo);
+            atualizarBotao(temaSalvo);
+        });
+
+        function toggleTema() {
+            const atual = document.documentElement.getAttribute("data-theme") || "light";
+            const novoTema = atual === "light" ? "dark" : "light";
+
+            document.documentElement.setAttribute("data-theme", novoTema);
+            localStorage.setItem("tema", novoTema);
+            atualizarBotao(novoTema);
+
+            // Se estiver na página do Gantt → recarrega com o tema
+            if (window.location.pathname === "/gantt") {
+                const url = new URL(window.location.href);
+                url.searchParams.set("theme", novoTema);
+                window.location.href = url.toString();
+            }
+        }
+
+        function atualizarBotao(tema) {
+            const btn = document.getElementById("btnTema");
+            btn.textContent = tema === "dark" ? "☀️" : "🌙";
         }
     </script>
     <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->

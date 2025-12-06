@@ -1,22 +1,67 @@
 /* =========================================
-   VARIÁVEIS GLOBAIS
+   VARIÁVEIS – TEMA CLARO
    ========================================= */
 :root {
-    --cor-fundo-geral: #ffffff;
-    --cor-texto: #333;
+    --cor-fundo-geral: #fafafa;
+    --cor-card: #ffffff;
+
+    --cor-texto: #222;
+
     --cor-topbar-fundo: #222;
     --cor-topbar-texto: #ffffff;
+
     --cor-menu-fundo: #333;
     --cor-menu-hover: #444;
     --cor-menu-texto: #ddd;
     --cor-menu-texto-hover: #fff;
-    --cor-borda-tabela: #999;
+
+    --cor-borda-tabela: #ccc;
     --cor-header-tabela: #f2f2f2;
+    --cor-tabela-hover: #ececec;
+
+    --cor-input-fundo: #fff;
+    --cor-input-borda: #bbb;
+    --cor-input-texto: #222;
+
     --cor-botao: #0078ff;
     --cor-botao-hover: #005fcc;
     --cor-botao-texto: #fff;
+
     --cor-danger: #d9534f;
     --cor-danger-hover: #c9302c;
+}
+
+/* =========================================
+   VARIÁVEIS – TEMA ESCURO
+   ========================================= */
+:root[data-theme="dark"] {
+    --cor-fundo-geral: #121212;
+    --cor-card: #1a1a1a;
+
+    --cor-texto: #e0e0e0;
+
+    --cor-topbar-fundo: #000000;
+    --cor-topbar-texto: #ffffff;
+
+    --cor-menu-fundo: #1b1b1b;
+    --cor-menu-hover: #2a2a2a;
+    --cor-menu-texto: #ccc;
+    --cor-menu-texto-hover: #fff;
+
+    --cor-borda-tabela: #333;
+    --cor-header-tabela: #1f1f1f;
+    --cor-tabela-hover: #272727;
+
+    --cor-input-fundo: #1f1f1f;
+    --cor-input-borda: #444;
+    --cor-input-texto: #e6e6e6;
+
+    --cor-botao: #1e88e5;
+    --cor-botao-hover: #1565c0;
+    --cor-botao-texto: #fff;
+
+    --cor-danger: #ff6b6b;
+    --cor-danger-hover: #ff5252;
 }
 
 /* =========================================
@@ -31,14 +76,13 @@ body {
 
 .content {
     padding: 25px;
-    margin-top: 50px;  /* mesma altura do topbar */
+    margin-top: 60px;
     position: relative;
     z-index: 1;
 }
 
-
 /* =========================================
-   TOPBAR (menu superior)
+   TOPBAR
    ========================================= */
 .topbar {
     background: var(--cor-topbar-fundo);
@@ -52,10 +96,9 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 50px;     /* Define altura PADRÃO */
+    height: 50px;
     z-index: 9999;
 }
-
 
 .hamburger {
     font-size: 26px;
@@ -64,7 +107,7 @@ body {
 }
 
 /* =========================================
-   SIDEBAR (menu lateral)
+   SIDEBAR
    ========================================= */
 .sidebar {
     height: 100%;
@@ -75,10 +118,9 @@ body {
     background-color: var(--cor-menu-fundo);
     overflow-x: hidden;
     transition: 0.3s;
-    padding-top: 50px;   /* agora combina com a topbar */
+    padding-top: 50px;
     z-index: 10000;
 }
-
 
 .sidebar a {
     padding: 12px 20px;
@@ -124,7 +166,7 @@ table td {
 }
 
 table tr:hover {
-    background: #f9f9f9;
+    background: var(--cor-tabela-hover);
 }
 
 /* =========================================
@@ -136,9 +178,15 @@ input[type="date"],
 select {
     padding: 8px;
     margin-bottom: 10px;
-    border: 1px solid var(--cor-borda-tabela);
+    border: 1px solid var(--cor-input-borda);
     border-radius: 4px;
     width: 250px;
+    background: var(--cor-input-fundo);
+    color: var(--cor-input-texto);
+}
+
+input::placeholder {
+    color: #aaa;
 }
 
 button {
@@ -148,6 +196,7 @@ button {
     border: none;
     cursor: pointer;
     border-radius: 4px;
+    font-weight: bold;
 }
 
 button:hover {
@@ -165,122 +214,36 @@ a.excluir:hover {
 }
 
 /* =========================================
-   CABEÇALHOS
+   FORM SECTION (LINHA)
    ========================================= */
-h1 {
-    color: var(--cor-texto);
-    margin-bottom: 15px;
-}
-
-h2 {
-    color: var(--cor-texto);
-}
-
-/* =========================================
-   UTILIDADES
-   ========================================= */
-.mt-10 { margin-top: 10px; }
-.mt-20 { margin-top: 20px; }
-
-.btn {
-    grid-column: span 2;
-    padding: 10px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table th, .table td {
-    border: 1px solid #ccc;
-    padding: 8px;
-}
-
-/* =========================================
-   FORMULÁRIO: UMA LINHA COM FLEX
-   ========================================= */
-
 .form-section {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
     gap: 25px;
+    flex-wrap: wrap;
     width: 100%;
-    flex-wrap: nowrap; /* NÃO QUEBRA LINHA */
     padding: 10px 0;
 }
 
-/* Cada bloco (label + input) */
 .form-group {
     display: flex;
     flex-direction: column;
     min-width: 150px;
-    max-width: 200px;   /* ajuste como quiser */
+    max-width: 200px;
 }
 
-/* Label acima do input */
 .form-group label {
     font-weight: bold;
     margin-bottom: 5px;
 }
 
-/* Inputs */
-.form-group input,
-.form-group select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
-    width: 100%;
-}
-
-/* Botões ocupam espaço proporcional */
-.form-buttons {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-top: 10px;
-}
-
-.form-buttons button {
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 6px;
-    font-size: 15px;
-}
-
-.btn {
-    background: #0078ff;
-    color: white;
-    border: none;
-}
-
-.btn:hover {
-    background: #005ecc;
-}
-
-.btn-secondary {
-    background: #555;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #333;
-}
-
-/* RESPONSIVO */
+/* =========================================
+   RESPONSIVO
+   ========================================= */
 @media (max-width: 1200px) {
     .form-section {
-        flex-wrap: wrap; /* quebra se a tela ficar pequena */
-    }
-
-    .form-group {
-        width: calc(50% - 20px);
+        flex-wrap: wrap;
     }
 }
 
@@ -288,47 +251,4 @@ h2 {
     .form-group {
         width: 100%;
     }
-}
-
-.table-holidays {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-.table-holidays td, .table-holidays th {
-    border: 1px solid #ccc;
-    padding: 6px 10px;
-}
-.table-holidays tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-/* =========================================
-   AJUSTE DE CAMADAS (Z-INDEX)
-   ========================================= */
-
-/* Menu superior sempre na frente */
-.topbar {
-    position: fixed;
-    width: 100%;
-    z-index: 9999;
-}
-
-/* O conteúdo deve descer para não ficar atrás do topbar */
-.content {
-    margin-top: 60px;  /* ajuste se precisar */
-    position: relative;
-    z-index: 1;
-}
-
-/* Sidebar por cima do gráfico */
-.sidebar {
-    z-index: 10000;
-    position: fixed;
-}
-
-/* Plotly usa divs absolutas, então precisamos garantir que fique atrás */
-.plot-container,
-.js-plotly-plot {
-    z-index: 0 !important;
 }
